@@ -1,0 +1,39 @@
+::ng-deep
+
+.fill-space {
+    flex: 1 1 auto;
+}
+.appToolbar {
+    position: fixed; 
+    top:0;
+    z-index: 10000;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+}
+.none {
+    background:  url("https://openclipart.org/image/50px/svg_to_png/12674/Anonymous-Flag-of-Britain.png")  center / contain no-repeat;
+    white-space: nowrap;
+    color: rgba(0,0,0,0);
+}
+.option1 {
+    background:  url("https://openclipart.org/image/50px/svg_to_png/12674/Anonymous-Flag-of-Britain.png")  center / contain no-repeat;
+    white-space: nowrap;
+    color: rgba(0,0,0,0);
+}
+
+.option2 {
+    background:  url("http://media.openclipart.org/people/Manuela./20px-GermanFlag.png")  center / contain no-repeat;
+    white-space: nowrap;
+    display:inline;
+    color: rgba(0,0,0,0);
+}
+
+.flagOption {
+    width: 50px;
+    height: 32px;
+    margin: auto;
+}
+
+.languageOption.mat-option {
+    position: relative;
+    top: -12px;
+}

@@ -1,0 +1,17 @@
+<mat-toolbar color="primary" class="appToolbar">
+    <span>WPS-Angular-Client</span>
+    <span fxFlex></span>
+    <mat-select (selectionChange)="languageChange($event)" [(value)]="selected" [ngClass]="selected" style="width: 100px;">
+        <mat-option class="languageOption" value="none">None</mat-option> <!-- hidden beneath toolbar -->
+        <mat-option class="languageOption" value="option1" fxLayout="row" fxLayoutAlign="center end">
+            English
+            <span fxFlex></span>
+            <img class="flagOption" src="https://openclipart.org/image/50px/svg_to_png/12674/Anonymous-Flag-of-Britain.png">
+        </mat-option>
+        <mat-option class="languageOption" value="option2" fxLayoutAlign="center end">
+            German
+            <span fxFlex></span>
+            <img class="flagOption" src="http://media.openclipart.org/people/Manuela./20px-GermanFlag.png">
+        </mat-option>
+    </mat-select>
+</mat-toolbar>

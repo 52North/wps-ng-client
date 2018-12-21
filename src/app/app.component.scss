@@ -1,0 +1,78 @@
+::ng-deep
+/*
+.leaflet-top {
+    top: 64px !important;
+}*/
+.mat-form-field-infix {
+    border-top: 0px !important;
+}
+#wps-control-container {
+    background-color: #e3e3e3;
+    max-height: 100%;
+    overflow-y: scroll;
+}
+.wps-control-panel {
+    position: relative;
+    top: 8px;
+}
+.mat-expansion-panel:not(.mat-expanded) {
+    border-bottom: grey 1px solid;
+}
+.selectOptionSmall {
+    font-size: 12px !important;
+    margin-left: 8px;
+}
+.in-output-title {
+    font-weight: bold;
+    span {
+        padding-left: 24px;
+        font-weight: lighter;
+    }
+}
+.input-div {
+    width: 100%;
+    padding-left: 8px;
+    text-align: left;
+}
+.literal-input {
+    padding-left: 8px;
+    width: 100%;
+}
+.complex-input {
+    padding-left: 8px;
+    width: 100%;
+}
+.bbox-input {
+    padding-left: 8px;
+    width: 100%;
+}
+.full-width {
+    width: 100%;
+}
+
+.process-input {
+    background-color: #f3f3f3;
+    margin-bottom: 8px;
+    padding-right: 16px;
+    border: 1px #999 solid;
+    mat-radio-group {
+        mat-radio-button {
+            margin-left: 8px;
+            margin-bottom: 4px;
+            margin-top: 4px;
+        }
+    }
+}
+.response-div {
+    width: 100%;
+    padding-left: 8px;
+    text-align: left;
+    .heading {
+        font-weight: bold;
+        margin-top: 0px;
+    }
+    .indented-right {
+        margin-top: 0px;
+        padding-left: 8px;
+    }
+}

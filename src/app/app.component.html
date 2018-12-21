@@ -1,20 +1,543 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Welcome to {{ title }}!
-  </h1>
-  <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
-</div>
-<h2>Here are some links to help you start: </h2>
-<ul>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://github.com/angular/angular-cli/wiki">CLI Documentation</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-  </li>
-</ul>
+<app-toolbar style=""></app-toolbar>
+<div fxLayout="row" fxFill style="width: 100%;">
+    <div style="text-align:center; margin-top: 64px;" fxFlex>
+        <div fxFlex leaflet [leafletOptions]="options" [leafletLayersControl]="layersControl"
+            [leafletLayersControlOptions]="{position:'topleft'}" (leafletMapReady)="onMapReady($event)">
+            <div leafletDraw [leafletDrawOptions]="drawOptions" (leafletDrawCreated)="onDrawReady($event)"></div>
+        </div>
+        <div id="wps-control-container" fxFlex="nogrow">
+            <div style="width: 450px; margin-left: 8px; margin-right: 8px;">
+                <!-- ########### WPS CONFIGURATION ########### -->
+                <mat-accordion class="wps-control-panel">
+                    <mat-expansion-panel [expanded]="step === 0" (opened)="setStep(0)">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                {{ "WPS_CONFIGURATION" | translate}}
+                            </mat-panel-title>
+                            <mat-panel-description>
+                                {{ "WPS_CONFIGURATION_DESCRIPTION" | translate}}
+                                <span fxFlex></span>
+                                <mat-icon *ngIf="wpsGetCapSuccess == true" color="primary" matTooltip="{{'WPS_SUCCESS_TOOLTIP' | translate}}">check_circle_outline</mat-icon>
+                                <mat-icon *ngIf="wpsGetCapFail == true" color="warn" matTooltip="{{'WPS_FAIL_TOOLTIP' | translate}}">highlight_off</mat-icon>
+                            </mat-panel-description>
+                        </mat-expansion-panel-header>
 
+                        <div fxFlex fxLayout="column">
+                            <mat-form-field fxFlex>
+                                <h4>{{"WPS_SERVICE_URL" | translate}}</h4>
+                                <mat-select class='selectOptionSmall' (selectionChange)="wpsServiceUrlChange($event)"
+                                    [(value)]="selectedWpsServiceUrl" [ngClass]="selected">
+                                    <mat-option *ngFor="let url of serviceUrls" [value]="url">{{url}}</mat-option>
+                                    <mat-option value="WPS_ADD_SELECTED">
+                                        {{"ADD_WPS" | translate}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <div *ngIf="this.selectedWpsServiceUrl=='WPS_ADD_SELECTED'" style="width: 100%;" fxLayout="row">
+                                <mat-form-field fxFlex="65">
+                                    <input #btn_wpsAddUrl (keyup.enter)="btn_OnWpsAdd(btn_wpsAddUrl.value)" matInput
+                                        placeholder="{{'ENTER_WPS_URL' | translate}}">
+                                </mat-form-field>
+                                <span fxFlex="5"></span>
+                                <button (click)="btn_OnWpsAdd(btn_wpsAddUrl.value)" mat-raised-button color="primary"
+                                    fxFlex style="height: 38px;">{{"ADD_WPS_BTN" | translate}}</button>
+                            </div>
+
+                            <mat-form-field fxFlex>
+                                <h4>{{"WPS_VERSION" | translate}}</h4>
+                                <mat-select (selectionChange)="wpsServiceVersionChange($event)" [(value)]="selectedWpsServiceVersion"
+                                    [ngClass]="selected">
+                                    <mat-option value="1.0.0">1.0.0</mat-option>
+                                    <mat-option value="2.0.0">2.0.0</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <mat-progress-bar *ngIf="wpsGetCapLoading" mode="indeterminate"></mat-progress-bar>
+                        </div>
+                    </mat-expansion-panel>
+
+                    <mat-expansion-panel [disabled]="!wpsGetCapSuccess" [expanded]="step === 1" (opened)="setStep(1)">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                {{ "PROCESS_SELECTION" | translate }}
+                            </mat-panel-title>
+                            <mat-panel-description>
+                                {{ "PROCESS_SELECTION_DESCRIPTION" | translate }}
+                                <span fxFlex></span>
+                                <mat-icon *ngIf="processInputsDone" color="primary" matTooltip="{{'PROCESS_INPUTS_DONE_TOOLTIP' | translate}}"
+                                    style="margin:auto;">check_circle_outline</mat-icon>
+                                <mat-icon *ngIf="!processInputsDone" color="warn" matTooltip="{{'PROCESS_INPUTS_TODO_TOOLTIP' | translate}}"
+                                    style="margin:auto;">highlight_off</mat-icon>
+                            </mat-panel-description>
+                        </mat-expansion-panel-header>
+
+                        <div fxFlex fxLayout="column">
+                            <mat-form-field fxFlex>
+                                <h4>{{"SELECT_PROCESS" | translate}}</h4>
+                                <mat-select class='selectOptionSmall' (selectionChange)="processSelected($event)"
+                                    [(value)]="selectedProcessIdentifier" [ngClass]="selected">
+                                    <mat-option value='SELECT_PROCESS_HINT'>{{ "SELECT_PROCESS_HINT" | translate }}</mat-option>
+                                    <mat-option *ngFor="let wpsProcess of processes" [value]="wpsProcess.identifier">{{wpsProcess.title}}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+
+                            <div *ngIf="processOffering!=undefined" fxLayout="column" fxLayoutAlign="start start" style="width: 100%;">
+                                <h4>{{"PROCESS_INPUTS" | translate}}</h4>
+                                <div *ngIf="hasUnsetDefaultValues" class="full-width" style="padding-left: 12px;"
+                                    fxLayout="row" fxLayoutAlign="start start">
+                                    <p>{{'SELECT_DEFAULT_VALUES' | translate}}</p>
+                                    <span fxFlex></span>
+                                    <button (click)="takeDefaultValues();" mat-icon-button color="primary" matTooltip="{{'SELECT_DEFAULT_VALUES_TOOLTIP' | translate}}">
+                                        <mat-icon aria-label="select default values">input</mat-icon>
+                                    </button>
+                                </div>
+                                <div style="width: 100%; padding-left: 12px;" fxLayout="column" fxLayoutAlign="start start"
+                                    class="process-input" *ngFor="let input of processOffering.process.inputs; index as i">
+                                    <div fxLayout="row" style="width:100%;">
+                                        <p>{{input.title}}</p>
+                                        <span fxFlex></span>
+                                        <mat-icon *ngIf="!input.boundingBoxData && input.enteredValue != undefined && input.enteredValue.length >= 1"
+                                            color="primary" matTooltip="{{'INPUT_IS_DONE_HINT' | translate}}" style="margin:auto;">check_circle_outline</mat-icon>
+                                        <mat-icon *ngIf="!input.boundingBoxData && (input.enteredValue == undefined || input.enteredValue.length == 0) && input.minOccurs == 0"
+                                            color="accent" matTooltip="{{'INPUT_IS_OPTIONAL_TODO_HINT' | translate}}"
+                                            style="margin:auto;">error_outline</mat-icon>
+                                        <mat-icon *ngIf="!input.boundingBoxData && (input.enteredValue == undefined || input.enteredValue.length == 0) && input.minOccurs != 0"
+                                            color="warn" matTooltip="{{'INPUT_IS_TODO_HINT' | translate}}" style="margin:auto;">highlight_off</mat-icon>
+                                        <mat-icon *ngIf="input.boundingBoxData && input.validBbox != undefined && input.validBbox==true"
+                                            color="primary" matTooltip="{{'INPUT_IS_DONE_HINT' | translate}}" style="margin:auto;">check_circle_outline</mat-icon>
+                                        <mat-icon *ngIf="input.boundingBoxData && (input.validBbox == undefined || input.validBbox==false) && input.minOccurs == 0"
+                                            color="accent" matTooltip="{{'INPUT_IS_OPTIONAL_TODO_HINT' | translate}}"
+                                            style="margin:auto;">error_outline</mat-icon>
+                                        <mat-icon *ngIf="input.boundingBoxData && (input.validBbox == undefined || input.validBbox==false) && input.minOccurs != 0"
+                                            color="warn" matTooltip="{{'INPUT_IS_TODO_HINT' | translate}}" style="margin:auto;">highlight_off</mat-icon>
+                                    </div>
+                                    <div fxLayout="row" class="input-div">
+                                        <p fxFlex="50">{{"INPUT" | translate}}:</p>
+                                        <p fxFlex="50" *ngIf="input.minOccurs==0">{{ "OPTIONAL" | translate}}</p>
+                                        <p fxFlex="50" *ngIf="input.minOccurs!=0">{{ "REQUIRED" | translate}}</p>
+                                    </div>
+
+                                    <div fxLayout="row" class="input-div">
+                                        <p fxFlex="50">{{"PROCESS_INPUT_TYPE" | translate}}:</p>
+                                        <p fxFlex="50" *ngIf="input.literalData != undefined">{{"LITERAL_TYPE" |
+                                            translate}}</p>
+                                        <p fxFlex="50" *ngIf="input.complexData != undefined">{{"COMPLEX_TYPE" |
+                                            translate}}</p>
+                                        <p fxFlex="50" *ngIf="input.boundingBoxData != undefined">{{"BBOX_TYPE" |
+                                            translate}}</p>
+                                    </div>
+
+                                    <div fxLayout="row" class="input-div" *ngIf="input.literalData && input.literalData.literalDataDomains && input.literalData.literalDataDomains[0].defaultValue">
+                                        <p fxFlex="50">{{"PROCESS_INPUT_DEFAULTVALUE" | translate}}:</p>
+                                        <p fxFlex>{{input.literalData.literalDataDomains[0].defaultValue}}</p>
+                                        <button (click)="input.enteredValue=input.literalData.literalDataDomains[0].defaultValue;"
+                                            mat-icon-button color="primary" matTooltip="{{'SELECT_DEFAULT_VALUE_TOOLTIP' | translate}}">
+                                            <mat-icon aria-label="select default value">input</mat-icon>
+                                        </button>
+                                    </div>
+
+                                    <div *ngIf="input.literalData" fxLayout="row" class="literal-input">
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_FORMAT" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onInputFormatSelectionChange($event,input)"
+                                                [(value)]="input.selectedFormat" [ngClass]="selected">
+                                                <mat-option value='SELECT_MIMETYPE_HINT'>{{ "SELECT_MIMETYPE_HINT"
+                                                    | translate }}</mat-option>
+                                                <mat-option *ngFor="let format of input.literalData.formats" [value]="format">
+                                                    {{format.mimeType + (format.encoding? ", encoding: " +
+                                                    format.encoding : "") + (format.schema? ", schema: " +
+                                                    format.schema: "")}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                    <div *ngIf="input.literalData" fxLayout="row" class="literal-input">
+                                        <mat-form-field fxFlex appearance="outline">
+                                            <input (input)="checkInputsForCompleteness($event)" matInput placeholder="{{'LITERAL_VALUE_HINT' | translate}}"
+                                                [(ngModel)]="input.enteredValue">
+                                        </mat-form-field>
+                                    </div>
+
+                                    <div *ngIf="input.boundingBoxData" fxLayout="column" class="bbox-input full-width">
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_FORMAT" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onInputFormatSelectionChange($event,input)"
+                                                [(value)]="input.selectedFormat" [ngClass]="selected">
+                                                <mat-option value='SELECT_MIMETYPE_HINT'>{{ "SELECT_MIMETYPE_HINT" |
+                                                    translate }}</mat-option>
+                                                <mat-option *ngFor="let format of input.boundingBoxData.formats"
+                                                    [value]="format">
+                                                    {{format.mimeType + (format.encoding? ", encoding: " +
+                                                    format.encoding : "") + (format.schema? ", schema: " +
+                                                    format.schema: "")}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                    <div *ngIf="input.boundingBoxData" fxLayout="column" class="bbox-input full-width">
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_CRS" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onInputBBoxCrsChanged($event,input)"
+                                                [(value)]="input.selectedCRS" [ngClass]="selected">
+                                                <mat-option value='SELECT_CRS_HINT'>{{ "SELECT_CRS_HINT" | translate }}</mat-option>
+                                                <mat-option *ngFor="let crs of input.boundingBoxData.supportedCRSs"
+                                                    [value]="crs">
+                                                    {{crs}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                        <mat-radio-group (change)="userInputTypeChanged($event,input,i)" *ngIf="input.selectedCRS != 'SELECT_CRS_HINT'"
+                                            fxLayout="column" fxLayoutAlign="center start" [(ngModel)]="input.selectedInputType">
+                                            <p style="margin-bottom: 0px;">{{"SELECT_SPECIFICATION_MODE" | translate}}</p>
+                                            <mat-radio-button color='primary' *ngIf="input.selectedCRS.toLowerCase() == 'epsg:4326'"
+                                                value="option1">{{ "INPUT_AS_MAPINPUT" | translate}}</mat-radio-button>
+                                            <div class="full-width" fxLayoutAlign="space-around center" fxLayout="row"
+                                                *ngIf="input.selectedInputType == 'option1'">
+                                                <button *ngIf="rectangleDrawer._enabled && currentInput == input"
+                                                    (click)="btn_drawRectangle(input);" mat-icon-button color="accent"
+                                                    matTooltip="{{'END_DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="draw a rectangle">stop</mat-icon>
+                                                </button>
+                                                <button *ngIf="!rectangleDrawer._enabled || currentInput != input"
+                                                    (click)="btn_drawRectangle(input);" mat-icon-button color="primary"
+                                                    matTooltip="{{'DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="draw a rectangle">stop</mat-icon>
+                                                </button>
+                                            </div>
+                                            <mat-radio-button color='primary' value="option2">{{ "INPUT_AS_COORDS" |
+                                                translate}}</mat-radio-button>
+                                            <div class="full-width" fxLayout='column' style='margin-top: 16px;'>
+                                                <mat-form-field fxFlex>
+                                                    <input [disabled]="input.selectedInputType!='option2'" (input)="validateBothBBoxCorners($event,input,input.botLeft)"
+                                                        matInput placeholder="{{'BBOX_BOTLEFT_CORNER_HINT' | translate}}"
+                                                        [(ngModel)]="input.botLeft">
+                                                </mat-form-field>
+                                                <mat-form-field fxFlex>
+                                                    <input [disabled]="input.selectedInputType!='option2'" (input)="validateBothBBoxCorners($event,input,input.topRight)"
+                                                        matInput placeholder="{{'BBOX_TOPRIGHT_CORNER_HINT' | translate}}"
+                                                        [(ngModel)]="input.topRight">
+                                                </mat-form-field>
+                                            </div>
+                                        </mat-radio-group>
+                                    </div>
+                                    <div *ngIf="input.complexData" fxLayout="column" class="complex-input">
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_FORMAT" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onInputFormatSelectionChange($event,input)"
+                                                [(value)]="input.selectedFormat" [ngClass]="selected">
+                                                <mat-option value='SELECT_MIMETYPE_HINT'>{{
+                                                    "SELECT_MIMETYPE_HINT" | translate }}</mat-option>
+                                                <mat-option *ngFor="let format of input.complexData.formats" [value]="format">
+                                                    {{format.mimeType + (format.encoding? ", encoding: " +
+                                                    format.encoding : "") + (format.schema? ", schema: " +
+                                                    format.schema: "")}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                        <mat-radio-group (change)="userInputTypeChanged($event,input,i)" *ngIf="input.selectedFormat != 'SELECT_MIMETYPE_HINT'"
+                                            fxLayout="column" fxLayoutAlign="center start" [(ngModel)]="input.selectedInputType">
+                                            <p style="margin-bottom: 0px;">{{"SELECT_SPECIFICATION_MODE" |
+                                                translate}}</p>
+                                            <mat-radio-button color='primary' value="option1">{{
+                                                "INPUT_AS_REFERENCE" | translate}}</mat-radio-button>
+                                            <mat-form-field *ngIf="input.selectedInputType == 'option1'" appearance="outline"
+                                                class="full-width">
+                                                <input (input)="checkInputsForCompleteness($event)" autofocus matInput
+                                                    placeholder="{{'INPUT_AS_REFERENCE_HINT' | translate}}" [(ngModel)]="input.enteredValue">
+                                            </mat-form-field>
+                                            <mat-radio-button color='primary' value="option2">{{
+                                                "INPUT_AS_UPLOAD" | translate}}</mat-radio-button>
+                                            <input *ngIf="input.selectedInputType == 'option2'" type="file" accept=".json,.geojson,.txt" (change)="onInputChanged($event,input)">
+                                            <mat-radio-button color='primary' value="option3">{{
+                                                "INPUT_AS_PAYLOAD" | translate}}</mat-radio-button>
+                                            <mat-radio-button color='primary' *ngIf="input.selectedFormat.mimeType == 'application/vnd.geo+json'"
+                                                value="option4">{{ "INPUT_AS_MAPINPUT" | translate}}</mat-radio-button>
+                                            <div class="full-width" fxLayoutAlign="space-around center" fxLayout="row"
+                                                *ngIf="input.selectedInputType == 'option4'">
+                                                <button *ngIf="polylineDrawer._enabled && currentInput == input"
+                                                    (click)="btn_drawPolyline(input);" mat-icon-button color="accent"
+                                                    matTooltip="{{'END_DRAW_A_POLYLINE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="end draw a polyline">timeline</mat-icon>
+                                                </button>
+                                                <button *ngIf="!polylineDrawer._enabled || currentInput != input"
+                                                    (click)="btn_drawPolyline(input);" mat-icon-button color="primary"
+                                                    matTooltip="{{'DRAW_A_POLYLINE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="draw a polyline">timeline</mat-icon>
+                                                </button>
+                                                <button *ngIf="polygonDrawer._enabled && currentInput == input" (click)="btn_drawPolygon(input);"
+                                                    mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_POLYGON_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="end draw a polygon">turned_in</mat-icon>
+                                                </button>
+                                                <button *ngIf="!polygonDrawer._enabled || currentInput != input"
+                                                    (click)="btn_drawPolygon(input);" mat-icon-button color="primary"
+                                                    matTooltip="{{'DRAW_A_POLYGON_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="draw a polygon">turned_in</mat-icon>
+                                                </button>
+                                                <button *ngIf="rectangleDrawer._enabled && currentInput == input"
+                                                    (click)="btn_drawRectangle(input);" mat-icon-button color="accent"
+                                                    matTooltip="{{'END_DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="end draw a rectangle">stop</mat-icon>
+                                                </button>
+                                                <button *ngIf="!rectangleDrawer._enabled || currentInput != input"
+                                                    (click)="btn_drawRectangle(input);" mat-icon-button color="primary"
+                                                    matTooltip="{{'DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="draw a rectangle">stop</mat-icon>
+                                                </button>
+                                                <button *ngIf="circleDrawer._enabled && currentInput == input" (click)="btn_drawCircle(input);"
+                                                    mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_CIRCLE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="end draw a circle">lens</mat-icon>
+                                                </button>
+                                                <button *ngIf="!circleDrawer._enabled || currentInput != input" (click)="btn_drawCircle(input);"
+                                                    mat-icon-button color="primary" matTooltip="{{'DRAW_A_CIRCLE_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="draw a circle">lens</mat-icon>
+                                                </button>
+                                                <button *ngIf="markerDrawer._enabled && currentInput == input" (click)="btn_drawMarker(input);"
+                                                    mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_MARKER_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="end draw a marker" style="width:">location_on</mat-icon>
+                                                </button>
+                                                <button *ngIf="!markerDrawer._enabled || currentInput != input" (click)="btn_drawMarker(input);"
+                                                    mat-icon-button color="primary" matTooltip="{{'DRAW_A_MARKER_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="draw a marker" style="width:">location_on</mat-icon>
+                                                </button>
+                                                <button *ngIf="selectionDrawer._enabled && currentInput == input"
+                                                    (click)="btn_drawSelector(input);" mat-icon-button color="accent"
+                                                    matTooltip="{{'END_DRAW_BY_SELECT_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="end select from map output" style="width:">touch_app</mat-icon>
+                                                </button>
+                                                <button *ngIf="geojsonOutputsExist && input.complexData != undefined && (!selectionDrawer._enabled || currentInput != input)"
+                                                    (click)="btn_drawSelector(input);" mat-icon-button color="primary"
+                                                    matTooltip="{{'DRAW_BY_SELECT_TOOLTIP' | translate}}">
+                                                    <mat-icon aria-label="select from map output" style="width:">touch_app</mat-icon>
+                                                </button>
+                                            </div>
+                                            <mat-form-field appearance="outline" class="full-width">
+                                                <textarea [(ngModel)]="input.enteredValue" autofocus style='height: 100px;'
+                                                    [disabled]="input.selectedInputType != 'option3'" matInput
+                                                    placeholder="{{'INPUT_COMPLEX_PAYLOAD_HINT' | translate}}" (input)="checkInputsForCompleteness($event)"></textarea>
+                                            </mat-form-field>
+                                        </mat-radio-group>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div *ngIf="processOffering!=undefined" fxLayout="column" fxLayoutAlign="start start" style="width: 100%;">
+                                <h4>{{"PROCESS_OUTPUTS" | translate}}</h4>
+                                <div style="width: 100%; padding-left: 12px;" fxLayout="column" fxLayoutAlign="start start"
+                                    class="process-input" *ngFor="let output of processOffering.process.outputs; index as i">
+                                    <div fxLayout="row" style="width:100%;">
+                                        <p>{{output.title}}</p>
+                                        <span fxFlex></span>
+                                        <mat-icon *ngIf="output.selectedFormat != 'SELECT_MIMETYPE_HINT' && output.selectedTransmissionMode != 'SELECT_TRANSMISSION_MODE_HINT'"
+                                            color="primary" matTooltip="{{'OUTPUT_IS_DONE_HINT' | translate}}" style="margin:auto;">check_circle_outline</mat-icon>
+                                        <mat-icon *ngIf="output.selectedFormat == 'SELECT_MIMETYPE_HINT' || output.selectedTransmissionMode == 'SELECT_TRANSMISSION_MODE_HINT'"
+                                            color="accent" matTooltip="{{'OUTPUT_IS_TODO_HINT' | translate}}" style="margin:auto;">error_outline</mat-icon>
+                                    </div>
+
+                                    <div fxLayout="row" class="input-div">
+                                        <p fxFlex="50">{{"PROCESS_OUTPUT_TYPE" | translate}}:</p>
+                                        <p fxFlex="50" *ngIf="output.literalData != undefined">{{"LITERAL_TYPE"
+                                            | translate}}</p>
+                                        <p fxFlex="50" *ngIf="output.complexData != undefined">{{"COMPLEX_TYPE"
+                                            | translate}}</p>
+                                        <p fxFlex="50" *ngIf="output.boundingBoxData != undefined">{{"BBOX_TYPE"
+                                            | translate}}</p>
+                                    </div>
+
+                                    <div *ngIf="output.literalData" fxLayout="column" class="literal-input">
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_TRANSMISSION_MODE" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onTransmissionModeSelectionChange($event)"
+                                                [(value)]="output.selectedTransmissionMode" [ngClass]="selected">
+                                                <mat-option value='SELECT_TRANSMISSION_MODE_HINT'>{{
+                                                    "SELECT_TRANSMISSION_MODE_HINT" | translate }}</mat-option>
+                                                <mat-option *ngFor="let transmissionMode of processOffering.outputTransmissionModes"
+                                                    [value]="transmissionMode">
+                                                    {{transmissionMode}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+
+                                    <div *ngIf="output.boundingBoxData" fxLayout="column" class="bbox-input">
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_TRANSMISSION_MODE" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onTransmissionModeSelectionChange($event)"
+                                                [(value)]="output.selectedTransmissionMode" [ngClass]="selected">
+                                                <mat-option value='SELECT_TRANSMISSION_MODE_HINT'>{{
+                                                    "SELECT_TRANSMISSION_MODE_HINT" | translate }}</mat-option>
+                                                <mat-option *ngFor="let transmissionMode of processOffering.outputTransmissionModes"
+                                                    [value]="transmissionMode">
+                                                    {{transmissionMode}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+
+                                    <div *ngIf="output.complexData" fxLayout="column" class="complex-input">
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_FORMAT" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onFormatSelectionChange($event)"
+                                                [(value)]="output.selectedFormat" [ngClass]="selected">
+                                                <mat-option value='SELECT_MIMETYPE_HINT'>{{
+                                                    "SELECT_MIMETYPE_HINT" | translate }}</mat-option>
+                                                <mat-option *ngFor="let format of output.complexData.formats" [value]="format">
+                                                    {{format.mimeType + (format.encoding? ", encoding: " +
+                                                    format.encoding : "") + (format.schema? ", schema: " +
+                                                    format.schema: "")}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                        <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+                                            <p>{{"SELECT_TRANSMISSION_MODE" | translate}}</p>
+                                            <mat-select class='selectOptionSmall' (selectionChange)="onTransmissionModeSelectionChange($event)"
+                                                [(value)]="output.selectedTransmissionMode" [ngClass]="selected">
+                                                <mat-option value='SELECT_TRANSMISSION_MODE_HINT'>{{
+                                                    "SELECT_TRANSMISSION_MODE_HINT" | translate }}</mat-option>
+                                                <mat-option *ngFor="let transmissionMode of processOffering.outputTransmissionModes"
+                                                    [value]="transmissionMode">
+                                                    {{transmissionMode}}
+                                                </mat-option>
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-expansion-panel>
+
+                    <mat-expansion-panel [disabled]="!processInputsDone" [expanded]="step === 2" (opened)="setStep(2)">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                {{ "WPS_EXECUTE" | translate}}
+                            </mat-panel-title>
+                            <mat-panel-description>
+                                {{ "WPS_EXECUTE_DESCRIPTION" | translate}}
+                                <span fxFlex></span>
+                                <mat-icon *ngIf="processInputsDone && wpsGetCapSuccess == true" color="primary"
+                                    matTooltip="{{'WPS_EXECUTE_DONE_TOOLTIP' | translate}}">check_circle_outline</mat-icon>
+                                <mat-icon *ngIf="processInputsDone && wpsGetCapFail == true" color="warn" matTooltip="{{'WPS_EXECUTE_TODO_TOOLTIP' | translate}}">highlight_off</mat-icon>
+                            </mat-panel-description>
+                        </mat-expansion-panel-header>
+                        <div *ngIf="processOffering != undefined" fxFlex fxLayout="column">
+                            <mat-form-field fxFlex>
+                                <h4>{{"SELECT_EXECUTION_MODE" | translate}}</h4>
+                                <mat-select class='selectOptionSmall' (selectionChange)="onExecutionModeSelected($event)"
+                                    [(value)]="processOffering.selectedExecutionMode" [ngClass]="selected">
+                                    <mat-option value='SELECT_EXECUTION_MODE_HINT'>{{ "SELECT_EXECUTION_MODE_HINT" |
+                                        translate }}</mat-option>
+                                    <mat-option *ngFor="let executionMode of processOffering.jobControlOptions" [value]="executionMode">{{executionMode}}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field fxFlex>
+                                <h4>{{"SELECT_RESPONSE_FORMAT" | translate}}</h4>
+                                <mat-select class='selectOptionSmall' (selectionChange)="onResponseFormatSelected($event)"
+                                    [(value)]="processOffering.selectedResponseFormat" [ngClass]="selected">
+                                    <mat-option value='document'>document</mat-option>
+                                    <mat-option value='raw'>raw</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <button (click)="btn_onExecute()" mat-raised-button color="primary">{{"EXECUTE" |
+                                translate}}</button>
+
+                            <mat-progress-bar *ngIf="wpsExecuteLoading" mode="indeterminate" style="margin-top:16px;"></mat-progress-bar>
+                        </div>
+                    </mat-expansion-panel>
+
+                    <mat-expansion-panel [disabled]="!responseDocumentAvailable" [expanded]="step === 3" (opened)="setStep(3)">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                {{ "WPS_RESPONSES" | translate}}
+                            </mat-panel-title>
+                            <mat-panel-description>
+                                {{ "WPS_RESPONSES_DESCRIPTION" | translate}}
+                            </mat-panel-description>
+                        </mat-expansion-panel-header>
+                        <div fxFlex fxLayout="column" class="full-width">
+                            <div *ngIf="executionPressed && !wpsExecuteLoading && executeResponse != undefined && (executeResponse.type == 'statusInfoDocument' || executeResponse.type == 'responseDocument')"
+                                class="full-width" style="background-color: #f3f3f3; margin-top: 16px;">
+                                <h4>{{"WPS_RESPONSE_STATUS_DOCUMENT" | translate}}</h4>
+                                <div fxLayout="column" class="response-div">
+                                    <p class="heading">{{"PROCESS_IDENTIFIER" | translate}}:</p>
+                                    <p class="indented-right">{{selectedProcessIdentifier}}</p>
+                                </div>
+                                <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.status != undefined && executeResponse.responseDocument.status.info == undefined">
+                                    <p class="heading">{{"RESPONSE_STATUS" | translate}}:</p>
+                                    <p class="indented-right">{{executeResponse.responseDocument.status}}</p>
+                                </div>
+                                <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.status.info != undefined">
+                                    <p class="heading">{{"RESPONSE_STATUS" | translate}}:</p>
+                                    <p class="indented-right">{{executeResponse.responseDocument.status.info}}</p>
+                                </div>
+                                <mat-divider></mat-divider>
+                                <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.expirationDate != undefined">
+                                    <p class="heading">{{"PROCESS_EXPIRE_DATE" | translate}}:</p>
+                                    <p class="indented-right">{{executeResponse.responseDocument.expirationDate}}</p>
+                                </div>
+                                <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.jobId != undefined">
+                                    <p class="heading">{{"PROCESS_JOB_ID" | translate}}:</p>
+                                    <p class="indented-right">{{executeResponse.responseDocument.jobId}}</p>
+                                </div>
+                                <mat-progress-bar style="margin-bottom: 8px;" *ngIf="responseDocument != undefined && responseDocument.percentCompleted != undefined"
+                                    mode="determinate" value="{{responseDocument.percentCompleted}}"></mat-progress-bar>
+                                <button *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
+                                    (click)="btn_onRefreshStatus()" mat-raised-button color="primary">{{"REFRESH_STATUS"
+                                    | translate}}</button>
+                                <button *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
+                                    (click)="btn_onRefreshStatusAutomatically()" mat-raised-button color="accent">
+                                    <mat-icon aria-label="refresh status automatically">autorenew</mat-icon>
+                                </button>
+                                <button *ngIf="responseDocument.status == 'Succeeded'" (click)="btn_onGetResult()"
+                                    mat-raised-button color="primary">{{"GET_RESULT" | translate}}</button>
+                            </div>
+                            <div *ngIf="executionPressed && !wpsExecuteLoading && executeResponse != undefined && executeResponse.type != 'statusInfoDocument'"
+                                class="full-width" style="background-color: #f3f3f3; margin-top: 16px;">
+                                <h4>{{"WPS_RESPONSE_DOCUMENT" | translate}}</h4>
+                                <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.jobId != undefined">
+                                    <p class="heading">{{"PROCESS_JOB_ID" | translate}}:</p>
+                                    <p class="indented-right">{{executeResponse.responseDocument.jobId}}</p>
+                                </div>
+                                <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.expirationDate != undefined">
+                                    <p class="heading">{{"PROCESS_EXPIRE_DATE" | translate}}:</p>
+                                    <p class="indented-right">{{executeResponse.responseDocument.expirationDate}}</p>
+                                </div>
+                                <mat-divider></mat-divider>
+                                <h4>{{"OUTPUTS" | translate}}</h4>
+                                <div *ngFor="let output of executeResponse.responseDocument.outputs">
+                                    <div fxLayout="column" class="response-div">
+                                        <p class="heading">{{"OUTPUT_IDENTIFIER" | translate}}:</p>
+                                        <p class="indented-right">{{output.identifier}}</p>
+                                    </div>
+                                    <div *ngIf="output.data.complexData && output.data.complexData.mimeType != undefined"
+                                        fxLayout="column" class="response-div">
+                                        <p class="heading">{{"OUTPUT_MIMETYPE" | translate}}:</p>
+                                        <p class="indented-right">{{output.data.complexData.mimeType}}</p>
+                                    </div>
+                                    <div *ngIf="output.data.complexData && output.data.complexData.schema != undefined"
+                                        fxLayout="column" class="response-div">
+                                        <p class="heading">{{"OUTPUT_SCHEMA" | translate}}:</p>
+                                        <p class="indented-right">{{output.data.complexData.schema}}</p>
+                                    </div>
+                                    <div *ngIf="output.data.complexData && output.data.complexData.encoding != undefined"
+                                        fxLayout="column" class="response-div">
+                                        <p class="heading">{{"OUTPUT_ENCODING" | translate}}:</p>
+                                        <p class="indented-right">{{output.data.complexData.encoding}}</p>
+                                    </div>
+                                    <div *ngIf="output.data.complexData.value != undefined && output.data.complexData.value.length > 0"
+                                        fxLayout="column" class="response-div">
+                                        <p class="heading">{{"OUTPUT_VALUE" | translate}}:</p>
+                                        <p class="full-width" style="overflow-x: scroll;" *ngIf="output.data.complexData && output.data.complexData.value != undefined"
+                                            class="indented-right">{{output.data.complexData.value}}</p>
+                                        <p class="full-width" style="overflow-x: scroll;" *ngIf="output.data.literalData && output.data.literalData.value != undefined"
+                                            class="indented-right">{{output.data.literalData.value}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-expansion-panel>
+                </mat-accordion>
+            </div>
+        </div>
+    </div>
+</div>

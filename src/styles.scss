@@ -1,0 +1,47 @@
+/* You can add global styles to this file, and also import other style files */
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/*.leaflet-top {
+    top: 64px !important;
+}*/
+
+/*.leaflet-control {
+    display: none !important;
+}*/
+
+.leaflet-draw-toolbar{
+    display: none;
+}
+.info-panel {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    align-items: left;
+    text-align: left;
+    max-height: 300px !important;
+    overflow-y: scroll;
+    h4 {
+        display: inline-block;
+        margin: 0 0 5px;
+        color: #777;
+    }
+    p {
+        padding-top: 0px;
+        padding-bottom: 0px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+}
+.info-panel h4 {
+}
+.info-panel p {
+/*    text-align: left;
+    position: absolute;
+    left: 0px;*/
+}
