@@ -61,7 +61,6 @@
     "BBOX_TOPRIGHT_CORNER_HINT": "Definition der oberen rechten Ecke",
     
     "OUTPUTS": "Ausgaben",
-    "PROCESS_OUTPUTS": "Ausgaben",
     "PROCESS_OUTPUT_TYPE": "Typ",
     "OUTPUT_IS_TODO_HINT": "Diese optionale Ausgabe wurde nicht spezifiziert.",
     "OUTPUT_IS_DONE_HINT": "Diese optionale Ausgabe wurde vollständig spezifiziert.",

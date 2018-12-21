@@ -61,7 +61,6 @@
     "BBOX_TOPRIGHT_CORNER_HINT": "Definition of upper right corner",
     
     "OUTPUTS": "Outputs",
-    "PROCESS_OUTPUTS": "Outputs",
     "PROCESS_OUTPUT_TYPE": "Type",
     "OUTPUT_IS_TODO_HINT": "This optional output has not been specified yet.",
     "OUTPUT_IS_DONE_HINT": "This optional output is not required or has been specified already.",
