@@ -5,7 +5,6 @@ import { Process } from './model/process';
 import { ProcessOffering, ProcessOfferingProcess } from './model/process-offering';
 import { ExecuteResponse, ResponseDocument } from './model/execute-response';
 import * as L from 'leaflet';
-import '../../node_modules/leaflet-groupedlayercontrol/src/leaflet.groupedlayercontrol.js';
 
 import * as $ from 'jquery';
 
@@ -166,7 +165,7 @@ export class AppComponent {
             },
             featureGroup: this.allDrawnItems,
             edit: {
-                featureGroup: this.allDrawnItems, //REQUIRED!!
+                featureGroup: this.allDrawnItems,
                 remove: true
             }
         }
