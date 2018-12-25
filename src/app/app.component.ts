@@ -65,7 +65,7 @@ export class AppComponent {
     circleDrawer: any;
     markerDrawer: any;
     selectionDrawer: any;
-    allDrawnItems: any;
+    allDrawnItems: any; 
     drawOptions = {
         position: 'bottomright',
         draw: {
