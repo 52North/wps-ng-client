@@ -5,6 +5,7 @@ import { Process } from './model/process';
 import { ProcessOffering, ProcessOfferingProcess } from './model/process-offering';
 import { ExecuteResponse, ResponseDocument } from './model/execute-response';
 import * as L from 'leaflet';
+import 'leaflet-draw';
 
 import * as $ from 'jquery';
 
