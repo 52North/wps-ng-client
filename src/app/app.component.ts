@@ -5,7 +5,6 @@ import { Process } from './model/process';
 import { ProcessOffering, ProcessOfferingProcess } from './model/process-offering';
 import { ExecuteResponse, ResponseDocument } from './model/execute-response';
 import * as L from 'leaflet';
-import 'leaflet-draw';
 
 import * as $ from 'jquery';
 
@@ -66,7 +65,7 @@ export class AppComponent {
     circleDrawer: any;
     markerDrawer: any;
     selectionDrawer: any;
-    allDrawnItems: any; 
+    allDrawnItems: any;
     drawOptions = {
         position: 'bottomright',
         draw: {
@@ -418,6 +417,34 @@ export class AppComponent {
                 }
                 if (input.selectedFormat.mimeType == "application/vnd.geo+json") {
                     input.selectedInputType = 'option4';
+                }
+            } else if (input.literalData) {
+                console.log(input);
+                input.selectedFormat = "SELECT_MIMETYPE_HINT";
+                if (environment.defaultMimeType
+                    && environment.defaultMimeType != undefined) {
+                    for (let format of input.literalData.formats) {
+                        if (format.mimeType == environment.defaultMimeType) {
+                            if (!mimeTypeFound) {
+                                mimeTypeFound = true;
+                                input.selectedFormat = format;
+                            }
+                            if (environment.defaultSchema
+                                && environment.defaultSchema != undefined
+                                && environment.defaultSchema == format.schema) {
+                                schemaFound = true;
+                                input.selectedFormat = format;
+                            }
+                            if (environment.defaultEncoding
+                                && environment.defaultEncoding != undefined
+                                && environment.defaultEncoding == format.encoding) {
+                                if (!schemaFound) {
+                                    encodingFound = true;
+                                    input.selectedFormat = format;
+                                }
+                            }
+                        }
+                    }
                 }
             } else if (input.boundingBoxData) {
                 input.selectedCRS = 'SELECT_CRS_HINT';
@@ -1001,6 +1028,39 @@ export class AppComponent {
                                         feature.properties['OUTPUT'] = output.identifier;
                                     }
                                     this.addLayerOnMap(output.identifier, geojsonOutput, false);
+                                } else if (complexData.mimeType
+                                    && complexData.mimeType != undefined
+                                    && complexData.mimeType == 'application/WMS') {
+                                    console.log(complexData);
+                                    // get wms URL:
+                                    let wmsTargetUrl = complexData.value;
+                                    wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
+                                    wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
+                                    // encode URL:
+                                    let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
+                                    let resultsArray = regex.exec(wmsTargetUrl);
+                                    let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
+                                    let wmsBaseUrl = wmsTargetUrl.split("?")[0];
+                                    wmsBaseUrl = wmsBaseUrl + '?';
+                                    let wmsLayer = {
+                                        name: 'Output: ' + output.identifier,
+                                        type: 'wms',
+                                        visible: true,
+                                        url: wmsBaseUrl,
+                                        layerParams: {
+                                            layers: layerNamesString,
+                                            format: 'image/png',
+                                            transparent: true
+                                        }
+                                    }
+                                    let addedWMSLayer = L.tileLayer.wms(
+                                        wmsBaseUrl,
+                                        {
+                                            layers: layerNamesString,
+                                            format: 'image/png',
+                                            transparent: true
+                                        }
+                                    ).addTo(this.map);
                                 }
                             }
                         }
@@ -1059,6 +1119,39 @@ export class AppComponent {
                                             feature.properties['OUTPUT'] = output.identifier;
                                         }
                                         this.addLayerOnMap(output.identifier, geojsonOutput, false);
+                                    }else if (complexData.mimeType
+                                        && complexData.mimeType != undefined
+                                        && complexData.mimeType == 'application/WMS') {
+                                        console.log(complexData);
+                                        // get wms URL:
+                                        let wmsTargetUrl = complexData.value;
+                                        wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
+                                        wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
+                                        // encode URL:
+                                        let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
+                                        let resultsArray = regex.exec(wmsTargetUrl);
+                                        let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
+                                        let wmsBaseUrl = wmsTargetUrl.split("?")[0];
+                                        wmsBaseUrl = wmsBaseUrl + '?';
+                                        let wmsLayer = {
+                                            name: 'Output: ' + output.identifier,
+                                            type: 'wms',
+                                            visible: true,
+                                            url: wmsBaseUrl,
+                                            layerParams: {
+                                                layers: layerNamesString,
+                                                format: 'image/png',
+                                                transparent: true
+                                            }
+                                        }
+                                        let addedWMSLayer = L.tileLayer.wms(
+                                            wmsBaseUrl,
+                                            {
+                                                layers: layerNamesString,
+                                                format: 'image/png',
+                                                transparent: true
+                                            }
+                                        ).addTo(this.map);
                                     }
                                 }
                             }

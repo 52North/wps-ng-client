@@ -26,12 +26,9 @@
                             "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
                             "src/styles.scss",
                             "./node_modules/leaflet/dist/leaflet.css",
-                            "./node_modules/leaflet-draw/dist/leaflet.draw.css",
-                            "./node_modules/leaflet-groupedlayercontrol/src/leaflet.groupedlayercontrol.css"
+                            "./node_modules/leaflet-draw/dist/leaflet.draw.css"
                         ],
-                        "scripts": [
-                            "./node_modules/leaflet-groupedlayercontrol/src/leaflet.groupedlayercontrol.js"
-                        ]
+                        "scripts": []
                     },
                     "configurations": {
                         "production": {
@@ -81,12 +78,9 @@
                             "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
                             "src/styles.scss",
                             "./node_modules/leaflet/dist/leaflet.css",
-                            "./node_modules/leaflet-draw/dist/leaflet.draw.css",
-                            "./node_modules/leaflet-groupedlayercontrol/src/leaflet.groupedlayercontrol.css"
+                            "./node_modules/leaflet-draw/dist/leaflet.draw.css"
                         ],
-                        "scripts": [
-                            "./node_modules/leaflet-groupedlayercontrol/src/leaflet.groupedlayercontrol.js"
-                        ],
+                        "scripts": [],
                         "assets": [
                             "src/favicon.ico",
                             "src/assets"
