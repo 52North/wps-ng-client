@@ -32,6 +32,7 @@
     "PROCESS_INPUT_DEFAULTVALUE": "Standardwert",
     "SELECT_DEFAULT_VALUES": "Wähle vorhandene Standardwerte?",
     "SELECT_DEFAULT_VALUES_TOOLTIP": "vorhandene Standardwerte wählen",
+    "SELECT_DEFAULT_VALUE_TOOLTIP": "vorhandenen Standardwert wählen",
     "SELECT_FORMAT": "Wähle MimeType/Schema/Encoding",
     "SELECT_MIMETYPE_HINT": "Wähle ein Format..",
     "SELECT_SPECIFICATION_MODE": "Wähle die Eingabeart",
@@ -49,11 +50,13 @@
     "DRAW_A_RECTANGLE_TOOLTIP": "Setze ein Rechteck",
     "DRAW_A_CIRCLE_TOOLTIP": "Setze einen Kreis",
     "DRAW_A_MARKER_TOOLTIP": "Setze einen Punkt",
+    "DRAW_BY_SELECT_TOOLTIP": "Selektiere aus Ausgaben",
     "END_DRAW_A_POLYLINE_TOOLTIP": "Beende das Setzen von LineStrings",
     "END_DRAW_A_POLYGON_TOOLTIP": "Beende das Setzen von Polygonen",
     "END_DRAW_A_RECTANGLE_TOOLTIP": "Beende das Setzen von Rechtecken",
     "END_DRAW_A_CIRCLE_TOOLTIP": "Beende das Setzen von Kreisen",
     "END_DRAW_A_MARKER_TOOLTIP": "Beende das Setzen von Punkten",
+    "END_DRAW_BY_SELECT_TOOLTIP": "Beende Selektion aus Ausgaben",
     "SELECT_CRS": "Koordinatenreferenzsystem",
     "SELECT_CRS_HINT": "Wähle ein Koordinatenreferenzsystem",
     "INPUT_AS_COORDS": "Angabe der Eckpunkte",
@@ -89,5 +92,13 @@
     
     "INFO_PANEL_HEADING": "GeoJSON Informationsanzeige",
     "INFO_PANEL_HOVER_TIP": "Bewege den Mauszeiger über ein Layer",
-    "IN_OUTPUT_TYPE": "Typ"
+    "IN_OUTPUT_TYPE": "Typ",
+
+    "WPS_RESPONSES": "WPS Antwort",
+    "WPS_RESPONSES_DESCRIPTION": "Antwortdokument & Ausgaben",
+    "WPS_RESPONSE_STATUS_DOCUMENT": "Status Dokument",
+    "PROCESS_IDENTIFIER": "Process Identifier",
+    "RESPONSE_STATUS": "Antwortstatus",
+    "REFRESH_STATUS": "aktualisieren",
+    "GET_RESULT": "Hole Ergebnis"
 }
