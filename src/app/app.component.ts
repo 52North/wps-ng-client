@@ -782,6 +782,10 @@ export class AppComponent {
         }
     }
 
+    onResponseFormatSelected() {
+        console.log();
+    }
+
     btn_onRefreshStatus() {
         console.log("on refresh clicked.");
         console.log(this.responseDocument);
@@ -793,6 +797,7 @@ export class AppComponent {
                 if (resp.executeResponse) {
                     this.executeResponse = resp.executeResponse;
                     this.responseDocument = this.executeResponse.responseDocument;
+                    let jobId = this.executeResponse.responseDocument.jobId;
                     if (this.responseDocument.status != undefined
                         && this.responseDocument.status.info != undefined
                         && this.responseDocument.status.info.includes('percentCompleted:')) {
@@ -811,7 +816,7 @@ export class AppComponent {
                                 for (let feature of geojsonOutput.features) {
                                     feature.properties['OUTPUT'] = output.identifier;
                                 }
-                                this.addLayerOnMap(output.identifier, geojsonOutput, false);
+                                this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
                             }
                         }
                     }
@@ -834,6 +839,7 @@ export class AppComponent {
             console.log(resp);
             this.executeResponse = resp.executeResponse;
             this.responseDocument = this.executeResponse.responseDocument;
+            let jobId = this.executeResponse.responseDocument.jobId;
             // add outputs as layers:
             for (let output of this.executeResponse.responseDocument.outputs) {
                 if (output.data.complexData && output.data.complexData != undefined) {
@@ -845,7 +851,40 @@ export class AppComponent {
                         for (let feature of geojsonOutput.features) {
                             feature.properties['OUTPUT'] = output.identifier;
                         }
-                        this.addLayerOnMap(output.identifier, geojsonOutput, false);
+                        this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
+                    } else if (complexData.mimeType
+                        && complexData.mimeType != undefined
+                        && complexData.mimeType == 'application/WMS') {
+                        console.log(complexData);
+                        // get wms URL:
+                        let wmsTargetUrl = complexData.value;
+                        wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
+                        wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
+                        // encode URL:
+                        let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
+                        let resultsArray = regex.exec(wmsTargetUrl);
+                        let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
+                        let wmsBaseUrl = wmsTargetUrl.split("?")[0];
+                        wmsBaseUrl = wmsBaseUrl + '?';
+                        let wmsLayer = {
+                            name: 'Output: ' + output.identifier,
+                            type: 'wms',
+                            visible: true,
+                            url: wmsBaseUrl,
+                            layerParams: {
+                                layers: layerNamesString,
+                                format: 'image/png',
+                                transparent: true
+                            }
+                        }
+                        let addedWMSLayer = L.tileLayer.wms(
+                            wmsBaseUrl,
+                            {
+                                layers: layerNamesString,
+                                format: 'image/png',
+                                transparent: true
+                            }
+                        ).addTo(this.map);
                     }
                 }
             }
@@ -995,7 +1034,9 @@ export class AppComponent {
                         this.executeResponse = callback.executeResponse;
                         this.responseDocumentAvailable = true;
                         this.wpsExecuteLoading = false;
+                        let jobId = this.executeResponse.responseDocument.jobId;
                         // add inputs as layers:
+                        console.log(this.processOffering.process.inputs);
                         for (let input of this.processOffering.process.inputs) {
                             if (input.selectedFormat && input.selectedFormat != undefined) {
                                 let selectedFormat = input.selectedFormat;
@@ -1007,7 +1048,16 @@ export class AppComponent {
                                     for (let feature of geojsonInput.features) {
                                         feature.properties['INPUT'] = input.identifier;
                                     }
-                                    this.addLayerOnMap(input.identifier, geojsonInput, true);
+                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
+                                    this.map.removeLayer(input.mapItems);
+                                    this.map.removeLayer(this.allDrawnItems);
+                                    this.allDrawnItems.removeLayer(input.mapItems);
+                                } else if (input.boundingBoxData &&
+                                    input.boundingBoxData != undefined &&
+                                    input.selectedCRS == 'EPSG:4326') {
+                                    // bounding box input:
+                                    let geojsonInput = this.bboxToGeojson(input, true);
+                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
                                     this.map.removeLayer(input.mapItems);
                                     this.map.removeLayer(this.allDrawnItems);
                                     this.allDrawnItems.removeLayer(input.mapItems);
@@ -1016,7 +1066,6 @@ export class AppComponent {
                         }
                         // this.map.removeLayer(this.allDrawnItems);
                         // add outputs as layers:
-                        console.log(this.executeResponse.responseDocument);
                         for (let output of this.executeResponse.responseDocument.outputs) {
                             if (output.data.complexData && output.data.complexData != undefined) {
                                 let complexData = output.data.complexData;
@@ -1027,8 +1076,17 @@ export class AppComponent {
                                     for (let feature of geojsonOutput.features) {
                                         feature.properties['OUTPUT'] = output.identifier;
                                     }
-                                    this.addLayerOnMap(output.identifier, geojsonOutput, false);
-                                } else if (complexData.mimeType
+                                    this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
+                                } else if (output.boundingBoxData &&
+                                    output.boundingBoxData != undefined &&
+                                    output.selectedCRS == 'EPSG:4326') {
+                                    // bounding box input:
+                                    let geojsonInput = this.bboxToGeojson(output, false);
+                                    this.addLayerOnMap(output.identifier, geojsonInput, true, jobId);
+                                    this.map.removeLayer(output.mapItems);
+                                    this.map.removeLayer(this.allDrawnItems);
+                                    this.allDrawnItems.removeLayer(output.mapItems);
+                                }else if (complexData.mimeType
                                     && complexData.mimeType != undefined
                                     && complexData.mimeType == 'application/WMS') {
                                     console.log(complexData);
@@ -1085,6 +1143,7 @@ export class AppComponent {
                         this.executeResponse = callback.executeResponse;
                         this.responseDocument = this.executeResponse.responseDocument;
                         this.responseDocumentAvailable = true;
+                        let jobId = this.executeResponse.responseDocument.jobId;
                         this.wpsExecuteLoading = false;
                         // add inputs as layers:
                         for (let input of this.processOffering.process.inputs) {
@@ -1098,9 +1157,18 @@ export class AppComponent {
                                     for (let feature of geojsonInput.features) {
                                         feature.properties['INPUT'] = input.identifier;
                                     }
-                                    this.addLayerOnMap(input.identifier, geojsonInput, true);
+                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
                                     this.map.removeLayer(this.allDrawnItems);
                                     this.map.removeLayer(input.mapItems);
+                                    this.allDrawnItems.removeLayer(input.mapItems);
+                                } else if (input.boundingBoxData &&
+                                    input.boundingBoxData != undefined &&
+                                    input.selectedCRS == 'EPSG:4326') {
+                                    // bounding box input:
+                                    let geojsonInput = this.bboxToGeojson(input, true);
+                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
+                                    this.map.removeLayer(input.mapItems);
+                                    this.map.removeLayer(this.allDrawnItems);
                                     this.allDrawnItems.removeLayer(input.mapItems);
                                 }
                             }
@@ -1118,10 +1186,20 @@ export class AppComponent {
                                         for (let feature of geojsonOutput.features) {
                                             feature.properties['OUTPUT'] = output.identifier;
                                         }
-                                        this.addLayerOnMap(output.identifier, geojsonOutput, false);
-                                    }else if (complexData.mimeType
+                                        this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
+                                    } else if (output.boundingBoxData &&
+                                        output.boundingBoxData != undefined &&
+                                        output.selectedCRS == 'EPSG:4326') {
+                                        // bounding box input:
+                                        let geojsonInput = this.bboxToGeojson(output, false);
+                                        this.addLayerOnMap(output.identifier, geojsonInput, true, jobId);
+                                        this.map.removeLayer(output.mapItems);
+                                        this.map.removeLayer(this.allDrawnItems);
+                                        this.allDrawnItems.removeLayer(output.mapItems);
+                                    } else if (complexData.mimeType
                                         && complexData.mimeType != undefined
                                         && complexData.mimeType == 'application/WMS') {
+                                        debugger;
                                         console.log(complexData);
                                         // get wms URL:
                                         let wmsTargetUrl = complexData.value;
@@ -1341,7 +1419,41 @@ export class AppComponent {
         "opacity": 0.65
     };
 
-    addLayerOnMap(name, feature, isInput) {
+    bboxToGeojson(bboxInput, isInput: boolean) {
+        let geojsonInput = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": []
+                    }
+                }
+            ]
+        }          
+        if (isInput) {
+            geojsonInput.features[0].properties["INPUT"] = bboxInput.identifier;
+        } else {
+            geojsonInput.features[0].properties["OUTPUT"] = bboxInput.identifier;
+        }
+        let y_min = Number(bboxInput.botLeft.split(" ")[0]);
+        let x_min = Number(bboxInput.botLeft.split(" ")[1]);
+        let y_max = Number(bboxInput.topRight.split(" ")[0]);
+        let x_max = Number(bboxInput.topRight.split(" ")[1]);
+        let polygonBbox = [];
+        polygonBbox.push([x_min, y_min]);
+        polygonBbox.push([x_min, y_max]);
+        polygonBbox.push([x_max, y_max]);
+        polygonBbox.push([x_max, y_min]);
+        polygonBbox.push([x_min, y_min]);
+        geojsonInput.features[0].geometry.coordinates.push(polygonBbox);
+        return geojsonInput;
+    }
+
+    addLayerOnMap(name, feature, isInput, jobId) {
         console.log(feature);
         let layerToAdd = L.geoJSON(
             feature, {
@@ -1487,9 +1599,9 @@ export class AppComponent {
                 }
             }).addTo(this.map);
         if (isInput) {
-            this.layersControl.overlays["<b>Input:</b> " + name] = layerToAdd;
+            this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Input:</b> " + name] = layerToAdd;
         } else {
-            this.layersControl.overlays["<b>Output:</b> " + name] = layerToAdd;
+            this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + name] = layerToAdd;
             this.geojsonOutputsExist = true;
         }
     }
