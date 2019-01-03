@@ -48,5 +48,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .leaflet-popup-content {
     max-height: 300px;
     overflow-y: scroll;
+}
+.leaflet-popup-content-wrapper {
     width: 100% !important;
 }

@@ -295,21 +295,21 @@
                                                 </button>
                                                 <button *ngIf="markerDrawer._enabled && currentInput == input" (click)="btn_drawMarker(input);"
                                                     mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_MARKER_TOOLTIP' | translate}}">
-                                                    <mat-icon aria-label="end draw a marker" style="width:">location_on</mat-icon>
+                                                    <mat-icon aria-label="end draw a marker">location_on</mat-icon>
                                                 </button>
                                                 <button *ngIf="!markerDrawer._enabled || currentInput != input" (click)="btn_drawMarker(input);"
                                                     mat-icon-button color="primary" matTooltip="{{'DRAW_A_MARKER_TOOLTIP' | translate}}">
-                                                    <mat-icon aria-label="draw a marker" style="width:">location_on</mat-icon>
+                                                    <mat-icon aria-label="draw a marker">location_on</mat-icon>
                                                 </button>
                                                 <button *ngIf="selectionDrawer._enabled && currentInput == input"
                                                     (click)="btn_drawSelector(input);" mat-icon-button color="accent"
                                                     matTooltip="{{'END_DRAW_BY_SELECT_TOOLTIP' | translate}}">
-                                                    <mat-icon aria-label="end select from map output" style="width:">touch_app</mat-icon>
+                                                    <mat-icon aria-label="end select from map output">touch_app</mat-icon>
                                                 </button>
                                                 <button *ngIf="geojsonOutputsExist && input.complexData != undefined && (!selectionDrawer._enabled || currentInput != input)"
                                                     (click)="btn_drawSelector(input);" mat-icon-button color="primary"
                                                     matTooltip="{{'DRAW_BY_SELECT_TOOLTIP' | translate}}">
-                                                    <mat-icon aria-label="select from map output" style="width:">touch_app</mat-icon>
+                                                    <mat-icon aria-label="select from map output">touch_app</mat-icon>
                                                 </button>
                                             </div>
                                             <mat-form-field appearance="outline" class="full-width">

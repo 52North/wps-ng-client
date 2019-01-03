@@ -251,13 +251,13 @@ export class AppComponent {
     // TODO: CIRCLE --> POLYGON!
     onDrawReady(event) {
         let layer = event.layer;
+        this.allDrawnItems.removeLayer(layer);
         if (this.currentInput.boundingBoxData) {
             this.currentInput.botLeft = layer._bounds._southWest.lat + ' ' + layer._bounds._southWest.lng;
             this.currentInput.topRight = layer._bounds._northEast.lat + ' ' + layer._bounds._northEast.lng;
             if (this.currentInput.mapItems
                 && this.currentInput.mapItems != undefined) {
                 // remove old layer:
-                console.log(this.currentInput.mapItems);
                 this.map.removeLayer(this.currentInput.mapItems);
             }
             this.currentInput.mapItems = layer;
@@ -302,19 +302,14 @@ export class AppComponent {
     }
 
     onInputChanged(event, input) {
-        console.log(event);
         let geojsonFile = event.target.files[0];
-        console.log(geojsonFile);
         let reader = new FileReader();
         reader.onload = function (e) {
-            console.log("file is loaded:");
             // handle onload
-            console.log(e);
             let lines = e.target["result"];
             let newArr = JSON.parse(lines);
             // add to complex payload:
             input.enteredValue = JSON.stringify(newArr);
-            console.log(input.enteredValue);
         };
         reader.readAsText(geojsonFile);
     }
@@ -383,7 +378,6 @@ export class AppComponent {
         let schemaFound: boolean = false;
         let encodingFound: boolean = false;
         for (let input of this.processOffering.process.inputs) {
-            console.log(input);
             mimeTypeFound = false;
             schemaFound = false;
             encodingFound = false;
@@ -419,7 +413,6 @@ export class AppComponent {
                     input.selectedInputType = 'option4';
                 }
             } else if (input.literalData) {
-                console.log(input);
                 input.selectedFormat = "SELECT_MIMETYPE_HINT";
                 if (environment.defaultMimeType
                     && environment.defaultMimeType != undefined) {
@@ -691,15 +684,11 @@ export class AppComponent {
                     input.enteredValue.length == 0) &&
                 !input.boundingBoxData) {
                 boolTemp = false;
-                console.log("input: " + input.identifier);
-                console.log(boolTemp);
             }
             if (input.minOccurs > 0 &&
                 input.boundingBoxData) {
                 this.validateBothBBoxCorners("", input, "");
                 boolTemp = boolTemp && input.validBbox;
-                console.log("input: " + input.identifier);
-                console.log(boolTemp);
             }
             if (input.literalData
                 && input.literalData != undefined
@@ -775,7 +764,6 @@ export class AppComponent {
         if (this.responseDocument.status != 'Succeeded'
             && this.responseDocument.status.info != 'wps:ProcessSucceeded') {
             setTimeout(() => {
-                console.log('refreshing status...');
                 this.btn_onRefreshStatus();
                 this.btn_onRefreshStatusAutomatically();
             }, 5000);
@@ -783,17 +771,13 @@ export class AppComponent {
     }
 
     onResponseFormatSelected() {
-        console.log();
     }
 
     btn_onRefreshStatus() {
-        console.log("on refresh clicked.");
-        console.log(this.responseDocument);
         let jobId = this.responseDocument.jobId;
         if (this.responseDocument.version && this.responseDocument.version == "1.0.0") {
             let documentLocation = this.responseDocument.statusLocation;
             this.webProcessingService.parseStoredExecuteResponse_WPS_1_0((resp) => {
-                console.log(resp);
                 if (resp.executeResponse) {
                     this.executeResponse = resp.executeResponse;
                     this.responseDocument = this.executeResponse.responseDocument;
@@ -804,7 +788,6 @@ export class AppComponent {
                         this.responseDocument.percentCompleted =
                             this.responseDocument.status.info.substring(
                                 this.responseDocument.status.info.indexOf('percentCompleted:') + 17);
-                        console.log(this.responseDocument.percentCompleted);
                     }
                     for (let output of this.responseDocument.outputs) {
                         if (output.data.complexData && output.data.complexData != undefined) {
@@ -824,19 +807,15 @@ export class AppComponent {
             }, documentLocation);
         } else {
             this.webProcessingService.getStatus_WPS_2_0((response: any) => {
-                console.log(response);
                 this.executeResponse = response.executeResponse;
                 this.responseDocument = this.executeResponse.responseDocument;
-                console.log(this.responseDocument);
             }, jobId);
         }
     }
 
     btn_onGetResult() {
         let jobId = this.responseDocument.jobId;
-        console.log("on getResult clicked.");
         this.webProcessingService.getResult_WPS_2_0((resp) => {
-            console.log(resp);
             this.executeResponse = resp.executeResponse;
             this.responseDocument = this.executeResponse.responseDocument;
             let jobId = this.executeResponse.responseDocument.jobId;
@@ -855,7 +834,6 @@ export class AppComponent {
                     } else if (complexData.mimeType
                         && complexData.mimeType != undefined
                         && complexData.mimeType == 'application/WMS') {
-                        console.log(complexData);
                         // get wms URL:
                         let wmsTargetUrl = complexData.value;
                         wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
@@ -1036,7 +1014,6 @@ export class AppComponent {
                         this.wpsExecuteLoading = false;
                         let jobId = this.executeResponse.responseDocument.jobId;
                         // add inputs as layers:
-                        console.log(this.processOffering.process.inputs);
                         for (let input of this.processOffering.process.inputs) {
                             if (input.selectedFormat && input.selectedFormat != undefined) {
                                 let selectedFormat = input.selectedFormat;
@@ -1089,7 +1066,6 @@ export class AppComponent {
                                 }else if (complexData.mimeType
                                     && complexData.mimeType != undefined
                                     && complexData.mimeType == 'application/WMS') {
-                                    console.log(complexData);
                                     // get wms URL:
                                     let wmsTargetUrl = complexData.value;
                                     wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
@@ -1135,11 +1111,9 @@ export class AppComponent {
         } else {
             this.webProcessingService.execute(
                 (callback) => {
-                    console.log(callback);
                     if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
                         this.wpsExecuteLoading = false;
                     } else {
-                        console.log(callback);
                         this.executeResponse = callback.executeResponse;
                         this.responseDocument = this.executeResponse.responseDocument;
                         this.responseDocumentAvailable = true;
@@ -1199,8 +1173,6 @@ export class AppComponent {
                                     } else if (complexData.mimeType
                                         && complexData.mimeType != undefined
                                         && complexData.mimeType == 'application/WMS') {
-                                        debugger;
-                                        console.log(complexData);
                                         // get wms URL:
                                         let wmsTargetUrl = complexData.value;
                                         wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
@@ -1454,7 +1426,6 @@ export class AppComponent {
     }
 
     addLayerOnMap(name, feature, isInput, jobId) {
-        console.log(feature);
         let layerToAdd = L.geoJSON(
             feature, {
                 style: feature.features[0].geometry.type == 'LineString' ?
@@ -1521,7 +1492,6 @@ export class AppComponent {
                                         feature,
                                         JSON.parse(this.currentInput.enteredValue)
                                     );
-                                    console.log(inputFeatureCollection);
                                     this.currentInput.mapItems = L.geoJSON(
                                         inputFeatureCollection, {
                                         });
@@ -1535,7 +1505,6 @@ export class AppComponent {
                                     }
                                     let index = this.selectedOutputLayers.indexOf(layer);
                                     if (index > -1) {
-                                        console.log("removing layer...");
                                         this.selectedOutputLayers.splice(index, 1);
                                     }
                                     this.currentInput.enteredValue = JSON.stringify(inputFeatureCollection);
