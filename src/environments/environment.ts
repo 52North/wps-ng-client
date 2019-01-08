@@ -12,14 +12,14 @@ export const environment = {
     longitude: -70.660072
   },
   startZoom: 9,                    // 1,2,...,18 ; 1-world view, 18-very close
-  startLanguage: "de",              // "en", "de"
+  startLanguage: "en",              // "en", "de"
   
   // wps configuration:
   serviceUrls: [
     "http://geoprocessing.demo.52north.org:8080/wps/WebProcessingService",
     "https://riesgos.52north.org/wps/WebProcessingService"
   ],
-  defaultServiceUrl: 0,
+  defaultServiceUrl: 1,
   serviceVersion: "2.0.0",           // "1.0.0", "2.0.0"
   
   // process configuration:

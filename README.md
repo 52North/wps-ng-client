@@ -1,8 +1,11 @@
 
 # WpsNgClient
 
-Web Processing Client using wps-js, angular 7, angular-materials 2 and flexbox
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.2.1.
+Web Processing Services client using wps-js, angular 7, angular-materials 2 and flexbox. This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.2.1.
+
+# Live-example
+
+Test the functionalities on the [github.io page](https://mojioms.github.io/wps-ng-client/)
 
 ## Development server
 
