@@ -1,0 +1,34 @@
+<mat-expansion-panel [disabled]="disabled" [expanded]="expanded" (opened)="setExpanded(true)">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      {{ "WPS_EXECUTE" | translate}}
+    </mat-panel-title>
+    <mat-panel-description>
+      {{ "WPS_EXECUTE_DESCRIPTION" | translate}}
+      <span fxFlex></span>
+      <mat-icon *ngIf="processInputsDone && wpsGetCapSuccess == true" color="primary" matTooltip="{{'WPS_EXECUTE_DONE_TOOLTIP' | translate}}">check_circle_outline</mat-icon>
+      <mat-icon *ngIf="processInputsDone && wpsGetCapFail == true" color="warn" matTooltip="{{'WPS_EXECUTE_TODO_TOOLTIP' | translate}}">highlight_off</mat-icon>
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+  <div *ngIf="processOffering != undefined" fxFlex fxLayout="column">
+    <mat-form-field fxFlex>
+      <h4>{{"SELECT_EXECUTION_MODE" | translate}}</h4>
+      <mat-select class='selectOptionSmall' (selectionChange)="onExecutionModeSelected($event)" [(value)]="processOffering.selectedExecutionMode"
+        [ngClass]="selected">
+        <mat-option value='SELECT_EXECUTION_MODE_HINT'>{{ "SELECT_EXECUTION_MODE_HINT" | translate }}</mat-option>
+        <mat-option *ngFor="let executionMode of processOffering.jobControlOptions" [value]="executionMode">{{executionMode}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field fxFlex>
+      <h4>{{"SELECT_RESPONSE_FORMAT" | translate}}</h4>
+      <mat-select class='selectOptionSmall' (selectionChange)="onResponseFormatSelected($event)" [(value)]="processOffering.selectedResponseFormat"
+        [ngClass]="selected">
+        <mat-option value='document'>document</mat-option>
+        <mat-option value='raw'>raw</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button (click)="btn_onExecute()" mat-raised-button color="primary">{{"EXECUTE" | translate}}</button>
+
+    <mat-progress-bar *ngIf="wpsExecuteLoading" mode="indeterminate" style="margin-top:16px;"></mat-progress-bar>
+  </div>
+</mat-expansion-panel>

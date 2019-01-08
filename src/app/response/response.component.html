@@ -1,0 +1,91 @@
+<mat-expansion-panel [disabled]="disabled" [expanded]="expanded" (opened)="setExpanded(true)">
+  <mat-expansion-panel-header>
+      <mat-panel-title>
+          {{ "WPS_RESPONSES" | translate}}
+      </mat-panel-title>
+      <mat-panel-description>
+          {{ "WPS_RESPONSES_DESCRIPTION" | translate}}
+      </mat-panel-description>
+  </mat-expansion-panel-header>
+  <div fxFlex fxLayout="column" class="full-width">
+      <div *ngIf="executionPressed && !wpsExecuteLoading && executeResponse != undefined && (executeResponse.type == 'statusInfoDocument' || executeResponse.type == 'responseDocument')"
+          class="full-width" style="background-color: #f3f3f3; margin-top: 16px;">
+          <h4>{{"WPS_RESPONSE_STATUS_DOCUMENT" | translate}}</h4>
+          <div fxLayout="column" class="response-div">
+              <p class="heading">{{"PROCESS_IDENTIFIER" | translate}}:</p>
+              <p class="indented-right">{{selectedProcessIdentifier}}</p>
+          </div>
+          <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.status != undefined && executeResponse.responseDocument.status.info == undefined">
+              <p class="heading">{{"RESPONSE_STATUS" | translate}}:</p>
+              <p class="indented-right">{{executeResponse.responseDocument.status}}</p>
+          </div>
+          <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.status.info != undefined">
+              <p class="heading">{{"RESPONSE_STATUS" | translate}}:</p>
+              <p class="indented-right">{{executeResponse.responseDocument.status.info}}</p>
+          </div>
+          <mat-divider></mat-divider>
+          <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.expirationDate != undefined">
+              <p class="heading">{{"PROCESS_EXPIRE_DATE" | translate}}:</p>
+              <p class="indented-right">{{executeResponse.responseDocument.expirationDate}}</p>
+          </div>
+          <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.jobId != undefined">
+              <p class="heading">{{"PROCESS_JOB_ID" | translate}}:</p>
+              <p class="indented-right">{{executeResponse.responseDocument.jobId}}</p>
+          </div>
+          <mat-progress-bar style="margin-bottom: 8px;" *ngIf="responseDocument != undefined && responseDocument.percentCompleted != undefined"
+              mode="determinate" value="{{responseDocument.percentCompleted}}"></mat-progress-bar>
+          <button *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
+              (click)="btn_onRefreshStatus()" mat-raised-button color="primary">{{"REFRESH_STATUS"
+              | translate}}</button>
+          <button *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
+              (click)="btn_onRefreshStatusAutomatically()" mat-raised-button color="accent">
+              <mat-icon aria-label="refresh status automatically">autorenew</mat-icon>
+          </button>
+          <button *ngIf="responseDocument.status == 'Succeeded'" (click)="btn_onGetResult()"
+              mat-raised-button color="primary">{{"GET_RESULT" | translate}}</button>
+      </div>
+      <div *ngIf="executionPressed && !wpsExecuteLoading && executeResponse != undefined && executeResponse.type != 'statusInfoDocument'"
+          class="full-width" style="background-color: #f3f3f3; margin-top: 16px;">
+          <h4>{{"WPS_RESPONSE_DOCUMENT" | translate}}</h4>
+          <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.jobId != undefined">
+              <p class="heading">{{"PROCESS_JOB_ID" | translate}}:</p>
+              <p class="indented-right">{{executeResponse.responseDocument.jobId}}</p>
+          </div>
+          <div fxLayout="column" class="response-div" *ngIf="executeResponse.responseDocument.expirationDate != undefined">
+              <p class="heading">{{"PROCESS_EXPIRE_DATE" | translate}}:</p>
+              <p class="indented-right">{{executeResponse.responseDocument.expirationDate}}</p>
+          </div>
+          <mat-divider></mat-divider>
+          <h4>{{"OUTPUTS" | translate}}</h4>
+          <div *ngFor="let output of executeResponse.responseDocument.outputs">
+              <div fxLayout="column" class="response-div">
+                  <p class="heading">{{"OUTPUT_IDENTIFIER" | translate}}:</p>
+                  <p class="indented-right">{{output.identifier}}</p>
+              </div>
+              <div *ngIf="output.data.complexData && output.data.complexData.mimeType != undefined"
+                  fxLayout="column" class="response-div">
+                  <p class="heading">{{"OUTPUT_MIMETYPE" | translate}}:</p>
+                  <p class="indented-right">{{output.data.complexData.mimeType}}</p>
+              </div>
+              <div *ngIf="output.data.complexData && output.data.complexData.schema != undefined"
+                  fxLayout="column" class="response-div">
+                  <p class="heading">{{"OUTPUT_SCHEMA" | translate}}:</p>
+                  <p class="indented-right">{{output.data.complexData.schema}}</p>
+              </div>
+              <div *ngIf="output.data.complexData && output.data.complexData.encoding != undefined"
+                  fxLayout="column" class="response-div">
+                  <p class="heading">{{"OUTPUT_ENCODING" | translate}}:</p>
+                  <p class="indented-right">{{output.data.complexData.encoding}}</p>
+              </div>
+              <div *ngIf="output.data.complexData.value != undefined && output.data.complexData.value.length > 0"
+                  fxLayout="column" class="response-div">
+                  <p class="heading">{{"OUTPUT_VALUE" | translate}}:</p>
+                  <p class="full-width" style="overflow-x: scroll;" *ngIf="output.data.complexData && output.data.complexData.value != undefined"
+                      class="indented-right">{{output.data.complexData.value}}</p>
+                  <p class="full-width" style="overflow-x: scroll;" *ngIf="output.data.literalData && output.data.literalData.value != undefined"
+                      class="indented-right">{{output.data.literalData.value}}</p>
+              </div>
+          </div>
+      </div>
+  </div>
+</mat-expansion-panel>

@@ -8,4 +8,8 @@ export class ResponseDocument {
     expirationDate: string;
     jobId: string;
     outputs: Array<any>;
+    status: any;
+    percentCompleted: any;
+    statusLocation: any;
+    version: any;
 }

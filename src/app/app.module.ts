@@ -23,6 +23,10 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { AppComponent } from './app.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
+import { ConfigurationComponent } from './configuration/configuration.component';
+import { ProcessSpecificationComponent } from './process-specification/process-specification.component';
+import { ExecutionComponent } from './execution/execution.component';
+import { ResponseComponent } from './response/response.component';
 
 export function HttpLoaderFactory(http: HttpClient) {
     return new TranslateHttpLoader(http);
@@ -31,7 +35,11 @@ export function HttpLoaderFactory(http: HttpClient) {
 @NgModule({
   declarations: [
     AppComponent,
-    ToolbarComponent
+    ToolbarComponent,
+    ConfigurationComponent,
+    ProcessSpecificationComponent,
+    ExecutionComponent,
+    ResponseComponent
   ],
   imports: [
     HttpClientModule,

@@ -1,0 +1,324 @@
+<mat-expansion-panel [disabled]="disabled" [expanded]="expanded" (opened)="setExpanded(true)">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      {{ "PROCESS_SELECTION" | translate }}
+    </mat-panel-title>
+    <mat-panel-description>
+      {{ "PROCESS_SELECTION_DESCRIPTION" | translate }}
+      <span fxFlex></span>
+      <mat-icon *ngIf="processInputsDone" color="primary" matTooltip="{{'PROCESS_INPUTS_DONE_TOOLTIP' | translate}}"
+        style="margin:auto;">check_circle_outline</mat-icon>
+      <mat-icon *ngIf="!processInputsDone" color="warn" matTooltip="{{'PROCESS_INPUTS_TODO_TOOLTIP' | translate}}"
+        style="margin:auto;">highlight_off</mat-icon>
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+
+  <div fxFlex fxLayout="column">
+    <mat-form-field fxFlex>
+      <h4>{{"SELECT_PROCESS" | translate}}</h4>
+      <mat-select class='selectOptionSmall' (selectionChange)="processSelected($event)" [(value)]="selectedProcessIdentifier">
+        <mat-option value='SELECT_PROCESS_HINT'>{{ "SELECT_PROCESS_HINT" | translate }}</mat-option>
+        <mat-option *ngFor="let wpsProcess of processes" [value]="wpsProcess.identifier">{{wpsProcess.title}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div *ngIf="processOffering!=undefined" fxLayout="column" fxLayoutAlign="start start" style="width: 100%;">
+      <h4>{{"PROCESS_INPUTS" | translate}}</h4>
+      <div *ngIf="hasUnsetDefaultValues" class="full-width" style="padding-left: 12px;" fxLayout="row" fxLayoutAlign="start start">
+        <p>{{'SELECT_DEFAULT_VALUES' | translate}}</p>
+        <span fxFlex></span>
+        <button (click)="takeDefaultValues();" mat-icon-button color="primary" matTooltip="{{'SELECT_DEFAULT_VALUES_TOOLTIP' | translate}}">
+          <mat-icon aria-label="select default values">input</mat-icon>
+        </button>
+      </div>
+      <div style="width: 100%; padding-left: 12px;" fxLayout="column" fxLayoutAlign="start start" class="process-input"
+        *ngFor="let input of processOffering.process.inputs; index as i">
+        <div fxLayout="row" style="width:100%;">
+          <p>{{input.title}}</p>
+          <span fxFlex></span>
+          <mat-icon *ngIf="!input.boundingBoxData && input.enteredValue != undefined && input.enteredValue.length >= 1"
+            color="primary" matTooltip="{{'INPUT_IS_DONE_HINT' | translate}}" style="margin:auto;">check_circle_outline</mat-icon>
+          <mat-icon *ngIf="!input.boundingBoxData && (input.enteredValue == undefined || input.enteredValue.length == 0) && input.minOccurs == 0"
+            color="accent" matTooltip="{{'INPUT_IS_OPTIONAL_TODO_HINT' | translate}}" style="margin:auto;">error_outline</mat-icon>
+          <mat-icon *ngIf="!input.boundingBoxData && (input.enteredValue == undefined || input.enteredValue.length == 0) && input.minOccurs != 0"
+            color="warn" matTooltip="{{'INPUT_IS_TODO_HINT' | translate}}" style="margin:auto;">highlight_off</mat-icon>
+          <mat-icon *ngIf="input.boundingBoxData && input.validBbox != undefined && input.validBbox==true" color="primary"
+            matTooltip="{{'INPUT_IS_DONE_HINT' | translate}}" style="margin:auto;">check_circle_outline</mat-icon>
+          <mat-icon *ngIf="input.boundingBoxData && (input.validBbox == undefined || input.validBbox==false) && input.minOccurs == 0"
+            color="accent" matTooltip="{{'INPUT_IS_OPTIONAL_TODO_HINT' | translate}}" style="margin:auto;">error_outline</mat-icon>
+          <mat-icon *ngIf="input.boundingBoxData && (input.validBbox == undefined || input.validBbox==false) && input.minOccurs != 0"
+            color="warn" matTooltip="{{'INPUT_IS_TODO_HINT' | translate}}" style="margin:auto;">highlight_off</mat-icon>
+        </div>
+        <div fxLayout="row" class="input-div">
+          <p fxFlex="50">{{"INPUT" | translate}}:</p>
+          <p fxFlex="50" *ngIf="input.minOccurs==0">{{ "OPTIONAL" | translate}}</p>
+          <p fxFlex="50" *ngIf="input.minOccurs!=0">{{ "REQUIRED" | translate}}</p>
+        </div>
+
+        <div fxLayout="row" class="input-div">
+          <p fxFlex="50">{{"PROCESS_INPUT_TYPE" | translate}}:</p>
+          <p fxFlex="50" *ngIf="input.literalData != undefined">{{"LITERAL_TYPE" |
+            translate}}</p>
+          <p fxFlex="50" *ngIf="input.complexData != undefined">{{"COMPLEX_TYPE" |
+            translate}}</p>
+          <p fxFlex="50" *ngIf="input.boundingBoxData != undefined">{{"BBOX_TYPE" |
+            translate}}</p>
+        </div>
+
+        <div fxLayout="row" class="input-div" *ngIf="input.literalData && input.literalData.literalDataDomains && input.literalData.literalDataDomains[0].defaultValue">
+          <p fxFlex="50">{{"PROCESS_INPUT_DEFAULTVALUE" | translate}}:</p>
+          <p fxFlex>{{input.literalData.literalDataDomains[0].defaultValue}}</p>
+          <button (click)="input.enteredValue=input.literalData.literalDataDomains[0].defaultValue;" mat-icon-button
+            color="primary" matTooltip="{{'SELECT_DEFAULT_VALUE_TOOLTIP' | translate}}">
+            <mat-icon aria-label="select default value">input</mat-icon>
+          </button>
+        </div>
+
+        <div *ngIf="input.literalData && input.literalData.formats" fxLayout="row" class="literal-input">
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_FORMAT" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onInputFormatSelectionChange($event,input)"
+              [(value)]="input.selectedFormat" [ngClass]="selected">
+              <mat-option value='SELECT_MIMETYPE_HINT'>{{ "SELECT_MIMETYPE_HINT"
+                | translate }}</mat-option>
+              <mat-option *ngFor="let format of input.literalData.formats" [value]="format">
+                {{format.mimeType + (format.encoding? ", encoding: " +
+                format.encoding : "") + (format.schema? ", schema: " +
+                format.schema: "")}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div *ngIf="input.literalData" fxLayout="row" class="literal-input">
+          <mat-form-field fxFlex appearance="outline">
+            <input (input)="checkInputsForCompleteness($event)" matInput placeholder="{{'LITERAL_VALUE_HINT' | translate}}"
+              [(ngModel)]="input.enteredValue">
+          </mat-form-field>
+        </div>
+
+        <div *ngIf="input.boundingBoxData" fxLayout="column" class="bbox-input full-width">
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_FORMAT" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onInputFormatSelectionChange($event,input)"
+              [(value)]="input.selectedFormat" [ngClass]="selected">
+              <mat-option value='SELECT_MIMETYPE_HINT'>{{ "SELECT_MIMETYPE_HINT" |
+                translate }}</mat-option>
+              <mat-option *ngFor="let format of input.boundingBoxData.formats" [value]="format">
+                {{format.mimeType + (format.encoding? ", encoding: " +
+                format.encoding : "") + (format.schema? ", schema: " +
+                format.schema: "")}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div *ngIf="input.boundingBoxData" fxLayout="column" class="bbox-input full-width">
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_CRS" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onInputBBoxCrsChanged($event,input)" [(value)]="input.selectedCRS"
+              [ngClass]="selected">
+              <mat-option value='SELECT_CRS_HINT'>{{ "SELECT_CRS_HINT" | translate }}</mat-option>
+              <mat-option *ngFor="let crs of input.boundingBoxData.supportedCRSs" [value]="crs">
+                {{crs}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-radio-group (change)="userInputTypeChanged($event,input,i)" *ngIf="input.selectedCRS != 'SELECT_CRS_HINT'"
+            fxLayout="column" fxLayoutAlign="center start" [(ngModel)]="input.selectedInputType">
+            <p style="margin-bottom: 0px;">{{"SELECT_SPECIFICATION_MODE" | translate}}</p>
+            <mat-radio-button color='primary' *ngIf="input.selectedCRS.toLowerCase() == 'epsg:4326'" value="option1">{{
+              "INPUT_AS_MAPINPUT" | translate}}</mat-radio-button>
+            <div class="full-width" fxLayoutAlign="space-around center" fxLayout="row" *ngIf="input.selectedInputType == 'option1'">
+              <button *ngIf="rectangleDrawer._enabled && currentInput == input" (click)="btn_drawRectangle(input);"
+                mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="draw a rectangle">stop</mat-icon>
+              </button>
+              <button *ngIf="!rectangleDrawer._enabled || currentInput != input" (click)="btn_drawRectangle(input);"
+                mat-icon-button color="primary" matTooltip="{{'DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="draw a rectangle">stop</mat-icon>
+              </button>
+            </div>
+            <mat-radio-button color='primary' value="option2">{{ "INPUT_AS_COORDS" |
+              translate}}</mat-radio-button>
+            <div class="full-width" fxLayout='column' style='margin-top: 16px;'>
+              <mat-form-field fxFlex>
+                <input [disabled]="input.selectedInputType!='option2'" (input)="validateBothBBoxCorners($event,input,input.botLeft)"
+                  matInput placeholder="{{'BBOX_BOTLEFT_CORNER_HINT' | translate}}" [(ngModel)]="input.botLeft">
+              </mat-form-field>
+              <mat-form-field fxFlex>
+                <input [disabled]="input.selectedInputType!='option2'" (input)="validateBothBBoxCorners($event,input,input.topRight)"
+                  matInput placeholder="{{'BBOX_TOPRIGHT_CORNER_HINT' | translate}}" [(ngModel)]="input.topRight">
+              </mat-form-field>
+            </div>
+          </mat-radio-group>
+        </div>
+        <div *ngIf="input.complexData" fxLayout="column" class="complex-input">
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_FORMAT" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onInputFormatSelectionChange($event,input)"
+              [(value)]="input.selectedFormat" [ngClass]="selected">
+              <mat-option value='SELECT_MIMETYPE_HINT'>{{
+                "SELECT_MIMETYPE_HINT" | translate }}</mat-option>
+              <mat-option *ngFor="let format of input.complexData.formats" [value]="format">
+                {{format.mimeType + (format.encoding? ", encoding: " +
+                format.encoding : "") + (format.schema? ", schema: " +
+                format.schema: "")}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-radio-group (change)="userInputTypeChanged($event,input,i)" *ngIf="input.selectedFormat != 'SELECT_MIMETYPE_HINT'"
+            fxLayout="column" fxLayoutAlign="center start" [(ngModel)]="input.selectedInputType">
+            <p style="margin-bottom: 0px;">{{"SELECT_SPECIFICATION_MODE" |
+              translate}}</p>
+            <mat-radio-button color='primary' value="option1">{{
+              "INPUT_AS_REFERENCE" | translate}}</mat-radio-button>
+            <mat-form-field *ngIf="input.selectedInputType == 'option1'" appearance="outline" class="full-width">
+              <input (input)="checkInputsForCompleteness($event)" autofocus matInput placeholder="{{'INPUT_AS_REFERENCE_HINT' | translate}}"
+                [(ngModel)]="input.enteredValue">
+            </mat-form-field>
+            <mat-radio-button color='primary' value="option2">{{
+              "INPUT_AS_UPLOAD" | translate}}</mat-radio-button>
+            <input *ngIf="input.selectedInputType == 'option2'" type="file" accept=".json,.geojson,.txt" (change)="onInputChanged($event,input)">
+            <mat-radio-button color='primary' value="option3">{{
+              "INPUT_AS_PAYLOAD" | translate}}</mat-radio-button>
+            <mat-radio-button color='primary' *ngIf="input.selectedFormat.mimeType == 'application/vnd.geo+json'" value="option4">{{
+              "INPUT_AS_MAPINPUT" | translate}}</mat-radio-button>
+            <div class="full-width" fxLayoutAlign="space-around center" fxLayout="row" *ngIf="input.selectedInputType == 'option4'">
+              <button *ngIf="polylineDrawer._enabled && currentInput == input" (click)="btn_drawPolyline(input);"
+                mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_POLYLINE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="end draw a polyline">timeline</mat-icon>
+              </button>
+              <button *ngIf="!polylineDrawer._enabled || currentInput != input" (click)="btn_drawPolyline(input);"
+                mat-icon-button color="primary" matTooltip="{{'DRAW_A_POLYLINE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="draw a polyline">timeline</mat-icon>
+              </button>
+              <button *ngIf="polygonDrawer._enabled && currentInput == input" (click)="btn_drawPolygon(input);"
+                mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_POLYGON_TOOLTIP' | translate}}">
+                <mat-icon aria-label="end draw a polygon">turned_in</mat-icon>
+              </button>
+              <button *ngIf="!polygonDrawer._enabled || currentInput != input" (click)="btn_drawPolygon(input);"
+                mat-icon-button color="primary" matTooltip="{{'DRAW_A_POLYGON_TOOLTIP' | translate}}">
+                <mat-icon aria-label="draw a polygon">turned_in</mat-icon>
+              </button>
+              <button *ngIf="rectangleDrawer._enabled && currentInput == input" (click)="btn_drawRectangle(input);"
+                mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="end draw a rectangle">stop</mat-icon>
+              </button>
+              <button *ngIf="!rectangleDrawer._enabled || currentInput != input" (click)="btn_drawRectangle(input);"
+                mat-icon-button color="primary" matTooltip="{{'DRAW_A_RECTANGLE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="draw a rectangle">stop</mat-icon>
+              </button>
+              <button *ngIf="circleDrawer._enabled && currentInput == input" (click)="btn_drawCircle(input);"
+                mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_CIRCLE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="end draw a circle">lens</mat-icon>
+              </button>
+              <button *ngIf="!circleDrawer._enabled || currentInput != input" (click)="btn_drawCircle(input);"
+                mat-icon-button color="primary" matTooltip="{{'DRAW_A_CIRCLE_TOOLTIP' | translate}}">
+                <mat-icon aria-label="draw a circle">lens</mat-icon>
+              </button>
+              <button *ngIf="markerDrawer._enabled && currentInput == input" (click)="btn_drawMarker(input);"
+                mat-icon-button color="accent" matTooltip="{{'END_DRAW_A_MARKER_TOOLTIP' | translate}}">
+                <mat-icon aria-label="end draw a marker">location_on</mat-icon>
+              </button>
+              <button *ngIf="!markerDrawer._enabled || currentInput != input" (click)="btn_drawMarker(input);"
+                mat-icon-button color="primary" matTooltip="{{'DRAW_A_MARKER_TOOLTIP' | translate}}">
+                <mat-icon aria-label="draw a marker">location_on</mat-icon>
+              </button>
+              <button *ngIf="selectionDrawer._enabled && currentInput == input" (click)="btn_drawSelector(input);"
+                mat-icon-button color="accent" matTooltip="{{'END_DRAW_BY_SELECT_TOOLTIP' | translate}}">
+                <mat-icon aria-label="end select from map output">touch_app</mat-icon>
+              </button>
+              <button *ngIf="geojsonOutputsExist && input.complexData != undefined && (!selectionDrawer._enabled || currentInput != input)"
+                (click)="btn_drawSelector(input);" mat-icon-button color="primary" matTooltip="{{'DRAW_BY_SELECT_TOOLTIP' | translate}}">
+                <mat-icon aria-label="select from map output">touch_app</mat-icon>
+              </button>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+              <textarea [(ngModel)]="input.enteredValue" autofocus style='height: 100px;' [disabled]="input.selectedInputType != 'option3'"
+                matInput placeholder="{{'INPUT_COMPLEX_PAYLOAD_HINT' | translate}}" (input)="checkInputsForCompleteness($event)"></textarea>
+            </mat-form-field>
+          </mat-radio-group>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="processOffering!=undefined" fxLayout="column" fxLayoutAlign="start start" style="width: 100%;">
+      <h4>{{"PROCESS_OUTPUTS" | translate}}</h4>
+      <div style="width: 100%; padding-left: 12px;" fxLayout="column" fxLayoutAlign="start start" class="process-input"
+        *ngFor="let output of processOffering.process.outputs; index as i">
+        <div fxLayout="row" style="width:100%;">
+          <p>{{output.title}}</p>
+          <span fxFlex></span>
+          <mat-icon *ngIf="output.selectedFormat != 'SELECT_MIMETYPE_HINT' && output.selectedTransmissionMode != 'SELECT_TRANSMISSION_MODE_HINT'"
+            color="primary" matTooltip="{{'OUTPUT_IS_DONE_HINT' | translate}}" style="margin:auto;">check_circle_outline</mat-icon>
+          <mat-icon *ngIf="output.selectedFormat == 'SELECT_MIMETYPE_HINT' || output.selectedTransmissionMode == 'SELECT_TRANSMISSION_MODE_HINT'"
+            color="accent" matTooltip="{{'OUTPUT_IS_TODO_HINT' | translate}}" style="margin:auto;">error_outline</mat-icon>
+        </div>
+
+        <div fxLayout="row" class="input-div">
+          <p fxFlex="50">{{"PROCESS_OUTPUT_TYPE" | translate}}:</p>
+          <p fxFlex="50" *ngIf="output.literalData != undefined">{{"LITERAL_TYPE"
+            | translate}}</p>
+          <p fxFlex="50" *ngIf="output.complexData != undefined">{{"COMPLEX_TYPE"
+            | translate}}</p>
+          <p fxFlex="50" *ngIf="output.boundingBoxData != undefined">{{"BBOX_TYPE"
+            | translate}}</p>
+        </div>
+
+        <div *ngIf="output.literalData" fxLayout="column" class="literal-input">
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_TRANSMISSION_MODE" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onTransmissionModeSelectionChange($event)"
+              [(value)]="output.selectedTransmissionMode" [ngClass]="selected">
+              <mat-option value='SELECT_TRANSMISSION_MODE_HINT'>{{
+                "SELECT_TRANSMISSION_MODE_HINT" | translate }}</mat-option>
+              <mat-option *ngFor="let transmissionMode of processOffering.outputTransmissionModes" [value]="transmissionMode">
+                {{transmissionMode}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div *ngIf="output.boundingBoxData" fxLayout="column" class="bbox-input">
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_TRANSMISSION_MODE" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onTransmissionModeSelectionChange($event)"
+              [(value)]="output.selectedTransmissionMode" [ngClass]="selected">
+              <mat-option value='SELECT_TRANSMISSION_MODE_HINT'>{{
+                "SELECT_TRANSMISSION_MODE_HINT" | translate }}</mat-option>
+              <mat-option *ngFor="let transmissionMode of processOffering.outputTransmissionModes" [value]="transmissionMode">
+                {{transmissionMode}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div *ngIf="output.complexData" fxLayout="column" class="complex-input">
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_FORMAT" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onFormatSelectionChange($event)" [(value)]="output.selectedFormat"
+              [ngClass]="selected">
+              <mat-option value='SELECT_MIMETYPE_HINT'>{{
+                "SELECT_MIMETYPE_HINT" | translate }}</mat-option>
+              <mat-option *ngFor="let format of output.complexData.formats" [value]="format">
+                {{format.mimeType + (format.encoding? ", encoding: " +
+                format.encoding : "") + (format.schema? ", schema: " +
+                format.schema: "")}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
+            <p>{{"SELECT_TRANSMISSION_MODE" | translate}}</p>
+            <mat-select class='selectOptionSmall' (selectionChange)="onTransmissionModeSelectionChange($event)"
+              [(value)]="output.selectedTransmissionMode" [ngClass]="selected">
+              <mat-option value='SELECT_TRANSMISSION_MODE_HINT'>{{
+                "SELECT_TRANSMISSION_MODE_HINT" | translate }}</mat-option>
+              <mat-option *ngFor="let transmissionMode of processOffering.outputTransmissionModes" [value]="transmissionMode">
+                {{transmissionMode}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+  </div>
+</mat-expansion-panel>

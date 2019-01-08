@@ -1,0 +1,44 @@
+<mat-expansion-panel [expanded]="expanded" (opened)="setExpanded(true)">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      {{ "WPS_CONFIGURATION" | translate}}
+    </mat-panel-title>
+    <mat-panel-description>
+      {{ "WPS_CONFIGURATION_DESCRIPTION" | translate}}
+      <span fxFlex></span>
+      <mat-icon *ngIf="wpsGetCapSuccess == true" color="primary" matTooltip="{{'WPS_SUCCESS_TOOLTIP' | translate}}">check_circle_outline</mat-icon>
+      <mat-icon *ngIf="wpsGetCapFail == true" color="warn" matTooltip="{{'WPS_FAIL_TOOLTIP' | translate}}">highlight_off</mat-icon>
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+
+  <div fxFlex fxLayout="column">
+    <mat-form-field fxFlex>
+      <h4>{{"WPS_SERVICE_URL" | translate}}</h4>
+      <mat-select class='selectOptionSmall' (selectionChange)="wpsServiceUrlChange($event)" [(value)]="selectedWpsServiceUrl">
+        <mat-option *ngFor="let url of serviceUrls" [value]="url">{{url}}</mat-option>
+        <mat-option value="WPS_ADD_SELECTED">
+          {{"ADD_WPS" | translate}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div *ngIf="this.selectedWpsServiceUrl=='WPS_ADD_SELECTED'" style="width: 100%;" fxLayout="row">
+      <mat-form-field fxFlex="65">
+        <input #btn_wpsAddUrl (keyup.enter)="btn_OnWpsAdd(btn_wpsAddUrl.value)" matInput placeholder="{{'ENTER_WPS_URL' | translate}}">
+      </mat-form-field>
+      <span fxFlex="5"></span>
+      <button (click)="btn_OnWpsAdd(btn_wpsAddUrl.value)" mat-raised-button color="primary" fxFlex style="height: 38px;">{{"ADD_WPS_BTN"
+        | translate}}</button>
+    </div>
+
+    <mat-form-field fxFlex>
+      <h4>{{"WPS_VERSION" | translate}}</h4>
+      <mat-select (selectionChange)="wpsServiceVersionChange($event)" [(value)]="selWpsServiceVersion">
+        <mat-option value="1.0.0">1.0.0</mat-option>
+        <mat-option value="2.0.0">2.0.0</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-progress-bar *ngIf="wpsGetCapLoading" mode="indeterminate"></mat-progress-bar>
+  </div>
+</mat-expansion-panel>

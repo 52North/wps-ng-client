@@ -1,0 +1,18 @@
+::ng-deep
+
+.mat-expansion-panel:not(.mat-expanded) {
+    border-bottom: grey 1px solid;
+}
+.response-div {
+    width: 100%;
+    padding-left: 8px;
+    text-align: left;
+    .heading {
+        font-weight: bold;
+        margin-top: 0px;
+    }
+    .indented-right {
+        margin-top: 0px;
+        padding-left: 8px;
+    }
+}

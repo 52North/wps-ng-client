@@ -1,12 +1,15 @@
-import { Component } from '@angular/core'; import { tileLayer, latLng } from 'leaflet';
+import { Component, ViewChild } from '@angular/core';
+import { tileLayer, latLng } from 'leaflet';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../environments/environment';
-import { Process } from './model/process';
 import { ProcessOffering, ProcessOfferingProcess } from './model/process-offering';
 import { ExecuteResponse, ResponseDocument } from './model/execute-response';
 import * as L from 'leaflet';
 
 import * as $ from 'jquery';
+import { ConfigurationComponent } from './configuration/configuration.component';
+import { DataService } from './services/data.service';
+import { ProcessSpecificationComponent } from './process-specification/process-specification.component';
 
 declare var WpsService: any;
 declare var InputGenerator: any;
@@ -18,8 +21,10 @@ declare var OutputGenerator: any;
     styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
+    @ViewChild(ConfigurationComponent) configuration: ConfigurationComponent;
+    @ViewChild(ProcessSpecificationComponent) specification: ProcessSpecificationComponent;
+    wpsSuccess: boolean = false;
 
-    selectedWpsServiceVersion: string = "option1";
     title = 'wps-ng-client';
     options = {
         layers: [
@@ -41,31 +46,28 @@ export class AppComponent {
     startLanguage: string = 'de';
     translationService: TranslateService;
     webProcessingService: any;
-    inputGenerator: any;
-    outputGenerator: any;
+    selectedWpsServiceVersion: string;
     panelOpenState = false;
-    serviceUrls: string[];
     selectedWpsServiceUrl: string;
     wpsGetCapLoading: boolean = false;
     wpsGetCapBlocking: boolean = false;
-    wpsGetCapSuccess: boolean = false;
     wpsGetCapFail: boolean = false;
-    processes: ProcessOfferingProcess[];
-    selectedProcessIdentifier: string;
+    processes: ProcessOfferingProcess[] = [];
     selectedProcess: ProcessOfferingProcess;
-    processOffering: ProcessOffering;
-    processInputs = {};
-    processInputsDone: boolean = false;
-    executionPressed: boolean = false;
-    wpsExecuteLoading: boolean = false;
+    processOffering: ProcessOffering = undefined;
+    selectedProcessIdentifier: string;
     executeResponse: ExecuteResponse;
+    responseDocumentAvailable: boolean = false;
+    processInputs = {};
     polylineDrawer: any;
     polygonDrawer: any;
     rectangleDrawer: any;
     circleDrawer: any;
     markerDrawer: any;
+    executionPressed: boolean = false;
     selectionDrawer: any;
     allDrawnItems: any;
+    processInputsDone: boolean;
     drawOptions = {
         position: 'bottomright',
         draw: {
@@ -82,7 +84,6 @@ export class AppComponent {
     map: any;
     currentInput: any;
     showInfoControl: boolean = false;
-    hasUnsetDefaultValues: boolean = false;
     info: any;
     inputMarkerIcon: any;
     inputMarkerHighlighIcon: any;
@@ -90,12 +91,80 @@ export class AppComponent {
     outputMarkerHighlighIcon: any;
     LeafDefaultIcon: any;
     LeafHighlightIcon: any;
-    responseDocumentAvailable: boolean = false;
     step: number = 0;
-    geojsonOutputsExist: boolean = false;
 
-    constructor(translate: TranslateService) {
+    responseDocument: ResponseDocument;
+
+    constructor(translate: TranslateService, private dataService: DataService) {
         this.translationService = translate;
+        this.dataService.processOffering$.subscribe(
+            procOffering => {
+                this.processOffering = procOffering;
+            }
+        );
+        this.dataService.processes$.subscribe(
+            processes => {
+                this.processes = processes;
+            }
+        )
+        this.dataService.webProcessingService$.subscribe(
+            wps => {
+                this.webProcessingService = wps;
+            }
+        )
+        this.dataService.wpsVersion$.subscribe(
+            wpsVersion => {
+                this.selectedWpsServiceVersion = wpsVersion;
+            }
+        )
+        this.dataService.processIdentifier$.subscribe(
+            processId => {
+                this.selectedProcessIdentifier = processId;
+            }
+        )
+        this.dataService.expandedPanel$.subscribe(
+            expandedPanel => {
+                this.step = expandedPanel;
+            }
+        )
+        this.dataService.currentInput$.subscribe(
+            input => {
+                this.currentInput = input;
+            }
+        )
+        this.dataService.removeDrawnItems$.subscribe(
+            layer => {
+                this.map.removeLayer(layer);
+                this.allDrawnItems.removeLayer(layer);
+            }
+        )
+        this.dataService.processInputsDone$.subscribe(
+            inputsDone => {
+                this.processInputsDone = inputsDone;
+            }
+        )
+        this.dataService.getCapSuccess$.subscribe(
+            success => {
+                this.wpsSuccess = success;
+                this.wpsGetCapFail = !success;
+            }
+        )
+        this.dataService.addLayerOnMap$.subscribe(
+            layer => {
+                this.map.removeLayer(layer);
+                this.map.removeLayer(this.allDrawnItems);
+                this.allDrawnItems.removeLayer(layer);
+
+            }
+        )
+        this.dataService.executeResponse$.subscribe(
+            executeResponse => {
+                this.executeResponse = executeResponse;
+                this.responseDocumentAvailable = true;
+                this.executionPressed = true;
+                this.responseDocument = this.executeResponse.responseDocument;
+            }
+        )
     }
 
     ngOnInit() {
@@ -128,29 +197,40 @@ export class AppComponent {
         } else {
             this.startLanguage = 'en';
         }
-        if (environment.serviceVersion && environment.serviceVersion == "1.0.0") {
-            this.selectedWpsServiceVersion = "1.0.0";
-        } else {
-            this.selectedWpsServiceVersion = "2.0.0";
-        }
-        if (environment.serviceUrls) {
-            this.serviceUrls = environment.serviceUrls;
-        } else {
-            this.serviceUrls = [];
-        }
-        if (environment.defaultServiceUrl != undefined &&
-            environment.defaultServiceUrl < this.serviceUrls.length) {
-            this.selectedWpsServiceUrl =
-                this.serviceUrls[environment.defaultServiceUrl];
-            this.checkWPService();
-        }
         if (environment.showInfoControl != undefined) {
             this.showInfoControl = environment.showInfoControl;
         }
-        this.geojsonOutputsExist = false;
+        this.dataService.setGeojsonOutputExists(false);
     }
 
-    setStep(step: number) {
+    ngAfterViewInit() {
+    }
+
+    notifyGetCapabilitiesSuccess = (success) => {
+        this.wpsSuccess = success;
+    }
+
+    setExpandedNotify = (expandedPanel) => {
+        this.step = expandedPanel;
+    }
+
+    processOfferingChanged($event) {
+        this.processOffering = $event;
+    }
+
+    processIdentifierChanged($event) {
+        this.selectedProcessIdentifier = $event;
+    }
+
+    webProcessingServiceChanged($event) {
+        this.webProcessingService = $event;
+    }
+
+    serviceVersionChanged($event) {
+        this.selectedWpsServiceVersion = $event;
+    }
+
+    setStep = (step: number) => {
         this.step = step;
     }
 
@@ -293,7 +373,7 @@ export class AppComponent {
             this.map.removeLayer(this.allDrawnItems);
         }
         this.disableAllDrawer();
-        this.checkInputsForCompleteness("");
+        this.specification.checkInputsForCompleteness("");
     }
 
     selectedOutputLayers: any[] = [];
@@ -314,7 +394,13 @@ export class AppComponent {
         reader.readAsText(geojsonFile);
     }
 
-    disableAllDrawer() {
+    disableAllDrawer = () => {
+        this.dataService.setPolylineDrawerEnabled(false);
+        this.dataService.setPolygonDrawerEnabled(false);
+        this.dataService.setRectangleDrawerEnabled(false);
+        this.dataService.setCircleDrawerEnabled(false);
+        this.dataService.setMarkerDrawerEnabled(false);
+        this.dataService.setSelectionDrawerEnabled(false);
         this.polylineDrawer.disable();
         this.polygonDrawer.disable();
         this.rectangleDrawer.disable();
@@ -323,903 +409,70 @@ export class AppComponent {
         this.selectionDrawer["_enabled"] = false;
     }
 
-    btn_drawPolyline(input) {
+    // enablePolylineDrawer() {
+    //     this.polylineDrawer.enabled();
+    // }
+
+    btn_drawPolyline = (input) => {
         let wasEnabled = this.polylineDrawer._enabled && this.currentInput == input;
         this.currentInput = input;
+        this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
         if (!wasEnabled) {
             this.polylineDrawer.enable();
+            this.dataService.setPolylineDrawerEnabled(true);
         }
     }
-    btn_drawPolygon(input) {
+    btn_drawPolygon = (input) => {
         let wasEnabled = this.polygonDrawer._enabled && this.currentInput == input;
         this.currentInput = input;
+        this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
         if (!wasEnabled) {
             this.polygonDrawer.enable();
+            this.dataService.setPolygonDrawerEnabled(true);
         }
     }
-    btn_drawRectangle(input) {
+    btn_drawRectangle = (input) => {
         let wasEnabled = this.rectangleDrawer._enabled && this.currentInput == input;
         this.currentInput = input;
+        this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
         if (!wasEnabled) {
             this.rectangleDrawer.enable();
+            this.dataService.setRectangleDrawerEnabled(true);
         }
     }
-    btn_drawCircle(input) {
+    btn_drawCircle = (input) => {
         let wasEnabled = this.circleDrawer._enabled && this.currentInput == input;
         this.currentInput = input;
+        this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
         if (!wasEnabled) {
             this.circleDrawer.enable();
+            this.dataService.setCircleDrawerEnabled(true);
         }
     }
-    btn_drawMarker(input) {
+    btn_drawMarker = (input) => {
         let wasEnabled = this.markerDrawer._enabled && this.currentInput == input;
         this.currentInput = input;
+        this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
         if (!wasEnabled) {
             this.markerDrawer.enable();
+            this.dataService.setMarkerDrawerEnabled(true);
         }
     }
-    btn_drawSelector(input) {
+    btn_drawSelector = (input) => {
         let wasEnabled = this.selectionDrawer._enabled && this.currentInput == input;
         this.currentInput = input;
+        this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
         if (!wasEnabled) {
             this.selectionDrawer["_enabled"] = true;
+            this.dataService.setSelectionDrawerEnabled(true);
         }
     }
-
-    setDefaultFormat() {
-        // default input format:
-        let mimeTypeFound: boolean = false;
-        let schemaFound: boolean = false;
-        let encodingFound: boolean = false;
-        for (let input of this.processOffering.process.inputs) {
-            mimeTypeFound = false;
-            schemaFound = false;
-            encodingFound = false;
-            if (input.complexData) {
-                input.selectedFormat = "SELECT_MIMETYPE_HINT";
-                input.selectedInputType = "option3";
-                if (environment.defaultMimeType
-                    && environment.defaultMimeType != undefined) {
-                    for (let format of input.complexData.formats) {
-                        if (format.mimeType == environment.defaultMimeType) {
-                            if (!mimeTypeFound) {
-                                mimeTypeFound = true;
-                                input.selectedFormat = format;
-                            }
-                            if (environment.defaultSchema
-                                && environment.defaultSchema != undefined
-                                && environment.defaultSchema == format.schema) {
-                                schemaFound = true;
-                                input.selectedFormat = format;
-                            }
-                            if (environment.defaultEncoding
-                                && environment.defaultEncoding != undefined
-                                && environment.defaultEncoding == format.encoding) {
-                                if (!schemaFound) {
-                                    encodingFound = true;
-                                    input.selectedFormat = format;
-                                }
-                            }
-                        }
-                    }
-                }
-                if (input.selectedFormat.mimeType == "application/vnd.geo+json") {
-                    input.selectedInputType = 'option4';
-                }
-            } else if (input.literalData) {
-                input.selectedFormat = "SELECT_MIMETYPE_HINT";
-                if (environment.defaultMimeType
-                    && environment.defaultMimeType != undefined) {
-                    for (let format of input.literalData.formats) {
-                        if (format.mimeType == environment.defaultMimeType) {
-                            if (!mimeTypeFound) {
-                                mimeTypeFound = true;
-                                input.selectedFormat = format;
-                            }
-                            if (environment.defaultSchema
-                                && environment.defaultSchema != undefined
-                                && environment.defaultSchema == format.schema) {
-                                schemaFound = true;
-                                input.selectedFormat = format;
-                            }
-                            if (environment.defaultEncoding
-                                && environment.defaultEncoding != undefined
-                                && environment.defaultEncoding == format.encoding) {
-                                if (!schemaFound) {
-                                    encodingFound = true;
-                                    input.selectedFormat = format;
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if (input.boundingBoxData) {
-                input.selectedCRS = 'SELECT_CRS_HINT';
-            }
-        }
-        // default output format:
-        for (let output of this.processOffering.process.outputs) {
-            mimeTypeFound = false;
-            schemaFound = false;
-            encodingFound = false;
-            this.setTransmissionModes(output);
-            if (output.complexData) {
-                output.selectedFormat = "SELECT_MIMETYPE_HINT";
-                if (environment.defaultOutputMimeType
-                    && environment.defaultOutputMimeType != undefined) {
-                    for (let format of output.complexData.formats) {
-                        if (format.mimeType == environment.defaultOutputMimeType) {
-                            if (!mimeTypeFound) {
-                                mimeTypeFound = true;
-                                output.selectedFormat = format;
-                            }
-                            if (environment.defaultOutputSchema
-                                && environment.defaultOutputSchema != undefined
-                                && environment.defaultOutputSchema == format.schema) {
-                                schemaFound = true;
-                                output.selectedFormat = format;
-                            }
-                            if (environment.defaultOutputEncoding
-                                && environment.defaultOutputEncoding != undefined
-                                && environment.defaultOutputEncoding == format.encoding) {
-                                if (!schemaFound) {
-                                    encodingFound = true;
-                                    output.selectedFormat = format;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    setTransmissionModes(output) {
-        output.selectedTransmissionMode = "SELECT_TRANSMISSION_MODE_HINT";
-        if (environment.defaultTransmissionMode
-            && environment.defaultTransmissionMode != undefined) {
-            if (this.processOffering.outputTransmissionModes.includes(environment.defaultTransmissionMode)) {
-                output.selectedTransmissionMode = environment.defaultTransmissionMode;
-            }
-        }
-    }
-
-    setDefaultLiteralValue() {
-        for (let input of this.processOffering.process.inputs) {
-            if (input.literalData) {
-                input.enteredValue = 'LITERAL_VALUE_HINT';
-            }
-        }
-    }
-
-    validateBothBBoxCorners(event, input, coord) {
-        if (input != undefined
-            && input.botLeft
-            && input.botLeft != undefined
-            && input.topRight
-            && input.topRight != undefined
-            && (this.validateBBoxCorner('', input, input.botLeft))
-            && (this.validateBBoxCorner('', input, input.topRight))) {
-            input.validBbox = true;
-        } else {
-            input.validBbox = false;
-            return false;
-        }
-    }
-
-    validateBBoxCorner(event, input, coord) {
-        let boolTemp = false;
-        if (coord != undefined
-            && coord.length != 0
-            && ((coord.indexOf(' ') > -1)
-                || (coord.indexOf(',') > -1))) {
-            let coords: string[] = coord.split(" ");
-            if (coords.length == 2) {
-                if ((isNaN(coords[0] as any) || (coords[0].length == 0))
-                    || (isNaN(coords[1] as any) || (coords[1].length == 0))) {
-                    boolTemp = false;
-                    input.validBbox = false;
-                    return false;
-                } else {
-                    boolTemp = true;
-                }
-            } else {
-                coords = coord.split(",");
-                if (coords.length == 2) {
-                    if ((isNaN(coords[0] as any) || (coords[0].length == 0))
-                        || (isNaN(coords[1] as any) || (coords[1].length == 0))) {
-                        boolTemp = false;
-                        input.validBbox = false;
-                        return false;
-                    } else {
-                        boolTemp = true;
-                    }
-                }
-            }
-        }
-        return boolTemp;
-    }
-
-    describeProcess() {
-        this.webProcessingService.describeProcess_GET((callback) => {
-            if (callback.processOffering && callback.processOffering != undefined) {
-                this.processOffering = callback.processOffering;
-                this.processOffering.selectedExecutionMode = "SELECT_EXECUTION_MODE_HINT";
-                if (environment.defaultExecutionMode
-                    && environment.defaultExecutionMode != undefined) {
-                    if (this.processOffering.jobControlOptions.includes(environment.defaultExecutionMode)) {
-                        this.processOffering.selectedExecutionMode = environment.defaultExecutionMode;
-                    }
-                }
-                this.processOffering.selectedResponseFormat = "document";
-                if (environment.defaultResponseFormat
-                    && environment.defaultResponseFormat != undefined) {
-                    if (["document", "raw"].includes(environment.defaultResponseFormat)) {
-                        this.processOffering.selectedResponseFormat = environment.defaultResponseFormat;
-                    }
-                }
-                this.setDefaultFormat();
-                this.checkInputsForCompleteness("");
-            } else {
-                // feedback to user: describeProcess was errorneous
-            }
-        }, this.selectedProcess.identifier);
-    }
-
-    checkWPService() {
-        this.wpsGetCapLoading = true;
-        this.webProcessingService = new WpsService({
-            url: this.selectedWpsServiceUrl,
-            version: this.selectedWpsServiceVersion
-        });
-        this.webProcessingService.getCapabilities_GET((callback) => {
-            this.wpsGetCapLoading = false;
-            if (callback.textStatus && callback.textStatus == "error") {
-                this.wpsGetCapSuccess = false;
-                this.wpsGetCapFail = true;
-                this.step = 0;
-            } else {
-                this.wpsGetCapSuccess = true;
-                this.wpsGetCapFail = false;
-                // fill process array:
-                this.processes = [];
-                let tempProc = -1;
-                this.selectedProcessIdentifier;
-                this.processInputsDone = false;
-                for (let process of callback.capabilities.processes) {
-                    this.processes.push(process);
-                    if (environment.defaultProcessIdentifier != undefined &&
-                        environment.defaultProcessIdentifier == process.identifier) {
-                        // select default process:
-                        this.selectedProcessIdentifier = process.identifier;
-                        this.selectedProcess = process;
-                        this.describeProcess();
-                        this.step = 1;
-                        tempProc = 0;
-                    }
-                }
-                if (this.selectedProcessIdentifier == undefined
-                    || tempProc == -1) {
-                    this.selectedProcessIdentifier = "SELECT_PROCESS_HINT";
-                    this.processOffering = undefined;
-                }
-            }
-        });
-    }
-
-    wpsServiceVersionChange(event) {
-        this.wpsGetCapSuccess = false;
-        this.wpsGetCapFail = false;
-        if (!this.wpsGetCapBlocking) {
-            this.checkWPService();
-        }
-    }
-
-    wpsServiceUrlChange(event) {
-        if (this.selectedWpsServiceUrl == "WPS_ADD_SELECTED") {
-            this.wpsGetCapBlocking = true;
-            this.wpsGetCapSuccess = false;
-            this.wpsGetCapFail = false;
-        } else {
-            this.wpsGetCapBlocking = false;
-            this.checkWPService();
-        }
-    }
-
-    btn_OnWpsAdd(value: string) {
-        this.serviceUrls.push(value);
-        this.selectedWpsServiceUrl = value;
-        this.wpsGetCapBlocking = false;
-        this.checkWPService();
-    }
-
-    processSelected(event) {
-        if (this.selectedProcessIdentifier == "SELECT_PROCESS_HINT") {
-            this.selectedProcess = undefined;
-            this.processOffering = undefined;
-            this.checkInputsForCompleteness("");
-            // remove drawnItems:
-            for (let input of this.processOffering.process.inputs) {
-                if (input.mapItems && input.mapItems != undefined) {
-                    this.map.removeLayer(input.mapItems);
-                    this.allDrawnItems.removeLayer(input.mapItems);
-                }
-            }
-        } else {
-            for (let process of this.processes) {
-                if (this.selectedProcessIdentifier == process.identifier) {
-                    this.selectedProcess = process;
-                }
-            }
-            // remove drawnItems:
-            if (this.processOffering && this.processOffering != undefined
-                && this.processOffering.process && this.processOffering.process != undefined
-                && this.processOffering.process.inputs && this.processOffering.process.inputs != undefined) {
-                for (let input of this.processOffering.process.inputs) {
-                    if (input.mapItems && input.mapItems != undefined) {
-                        this.map.removeLayer(input.mapItems);
-                        this.allDrawnItems.removeLayer(input.mapItems);
-                    }
-                }
-            }
-            this.describeProcess();
-        }
-    }
-
-    checkInputsForCompleteness(event) {
-        if (this.selectedProcessIdentifier == undefined) {
-            return true;
-        }
-        let boolTemp = true;
-        let hasDefValues = false;
-        for (let input of this.processOffering.process.inputs) {
-            if (input.minOccurs > 0 &&
-                (input.enteredValue == undefined ||
-                    input.enteredValue.length == 0) &&
-                !input.boundingBoxData) {
-                boolTemp = false;
-            }
-            if (input.minOccurs > 0 &&
-                input.boundingBoxData) {
-                this.validateBothBBoxCorners("", input, "");
-                boolTemp = boolTemp && input.validBbox;
-            }
-            if (input.literalData
-                && input.literalData != undefined
-                && input.literalData.literalDataDomains
-                && input.literalData.literalDataDomains != undefined
-                && input.literalData.literalDataDomains[0].defaultValue
-                && input.literalData.literalDataDomains[0].defaultValue != undefined) {
-                if (!input.enteredValue && (input.enteredValue == undefined || input.enteredValue.length == 0)) {
-                    hasDefValues = true;
-                }
-            }
-        }
-        this.hasUnsetDefaultValues = hasDefValues;
-        this.processInputsDone = boolTemp;
-    }
-
-    takeDefaultValues() {
-        for (let input of this.processOffering.process.inputs) {
-            if (input.literalData
-                && input.literalData != undefined
-                && input.literalData.literalDataDomains
-                && input.literalData.literalDataDomains != undefined
-                && input.literalData.literalDataDomains[0].defaultValue
-                && input.literalData.literalDataDomains[0].defaultValue != undefined
-                && !input.enteredValue) {
-                input.enteredValue = input.literalData.literalDataDomains[0].defaultValue;
-            }
-        }
-        this.checkInputsForCompleteness("");
-    }
-
-    onInputBBoxCrsChanged(event, input) {
-        if (input.selectedCRS != 'SELECT_CRS_HINT') {
-            if (input.selectedCRS.toLowerCase() == 'epsg:4326') {
-                input.selectedInputType = 'option1'
-            } else {
-                input.selectedInputType = 'option2'
-            }
-        }
-        this.checkInputsForCompleteness("");
-    }
-
-    onInputFormatSelectionChange(event, input) {
-        if (input.mapItems != undefined) {
-            this.map.removeLayer(input.mapItems);
-            this.allDrawnItems.removeLayer(input.mapItems);
-        }
-        if (input.selectedFormat.mimeType != 'application/vnd.geo+json' && input.selectedInputType == 'option4') {
-            input.selectedInputType = 'option3';
-        }
-        if (input.selectedFormat.mimeType != 'application/vnd.geo+json') {
-            input.selectedInputType = 'option3';
-        }
-        this.checkInputsForCompleteness("");
-        input.enteredValue = "";
-    }
-
-    onFormatSelectionChange(event) {
-        this.checkInputsForCompleteness("");
-    }
-
-    userInputTypeChanged(event, input, index) {
-        this.checkInputsForCompleteness("");
-    }
-
-    onTransmissionModeSelectionChange(event) {
-    }
-
-    onExecutionModeSelected(event) {
-    }
-
-    btn_onRefreshStatusAutomatically() {
-        if (this.responseDocument.status != 'Succeeded'
-            && this.responseDocument.status.info != 'wps:ProcessSucceeded') {
-            setTimeout(() => {
-                this.btn_onRefreshStatus();
-                this.btn_onRefreshStatusAutomatically();
-            }, 5000);
-        }
-    }
-
-    onResponseFormatSelected() {
-    }
-
-    btn_onRefreshStatus() {
-        let jobId = this.responseDocument.jobId;
-        if (this.responseDocument.version && this.responseDocument.version == "1.0.0") {
-            let documentLocation = this.responseDocument.statusLocation;
-            this.webProcessingService.parseStoredExecuteResponse_WPS_1_0((resp) => {
-                if (resp.executeResponse) {
-                    this.executeResponse = resp.executeResponse;
-                    this.responseDocument = this.executeResponse.responseDocument;
-                    let jobId = this.executeResponse.responseDocument.jobId;
-                    if (this.responseDocument.status != undefined
-                        && this.responseDocument.status.info != undefined
-                        && this.responseDocument.status.info.includes('percentCompleted:')) {
-                        this.responseDocument.percentCompleted =
-                            this.responseDocument.status.info.substring(
-                                this.responseDocument.status.info.indexOf('percentCompleted:') + 17);
-                    }
-                    for (let output of this.responseDocument.outputs) {
-                        if (output.data.complexData && output.data.complexData != undefined) {
-                            let complexData = output.data.complexData;
-                            if (complexData.mimeType
-                                && complexData.mimeType != undefined
-                                && complexData.mimeType == 'application/vnd.geo+json') {
-                                let geojsonOutput = JSON.parse(complexData.value);
-                                for (let feature of geojsonOutput.features) {
-                                    feature.properties['OUTPUT'] = output.identifier;
-                                }
-                                this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
-                            }
-                        }
-                    }
-                }
-            }, documentLocation);
-        } else {
-            this.webProcessingService.getStatus_WPS_2_0((response: any) => {
-                this.executeResponse = response.executeResponse;
-                this.responseDocument = this.executeResponse.responseDocument;
-            }, jobId);
-        }
-    }
-
-    btn_onGetResult() {
-        let jobId = this.responseDocument.jobId;
-        this.webProcessingService.getResult_WPS_2_0((resp) => {
-            this.executeResponse = resp.executeResponse;
-            this.responseDocument = this.executeResponse.responseDocument;
-            let jobId = this.executeResponse.responseDocument.jobId;
-            // add outputs as layers:
-            for (let output of this.executeResponse.responseDocument.outputs) {
-                if (output.data.complexData && output.data.complexData != undefined) {
-                    let complexData = output.data.complexData;
-                    if (complexData.mimeType
-                        && complexData.mimeType != undefined
-                        && complexData.mimeType == 'application/vnd.geo+json') {
-                        let geojsonOutput = JSON.parse(complexData.value);
-                        for (let feature of geojsonOutput.features) {
-                            feature.properties['OUTPUT'] = output.identifier;
-                        }
-                        this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
-                    } else if (complexData.mimeType
-                        && complexData.mimeType != undefined
-                        && complexData.mimeType == 'application/WMS') {
-                        // get wms URL:
-                        let wmsTargetUrl = complexData.value;
-                        wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
-                        wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
-                        // encode URL:
-                        let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
-                        let resultsArray = regex.exec(wmsTargetUrl);
-                        let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
-                        let wmsBaseUrl = wmsTargetUrl.split("?")[0];
-                        wmsBaseUrl = wmsBaseUrl + '?';
-                        let wmsLayer = {
-                            name: 'Output: ' + output.identifier,
-                            type: 'wms',
-                            visible: true,
-                            url: wmsBaseUrl,
-                            layerParams: {
-                                layers: layerNamesString,
-                                format: 'image/png',
-                                transparent: true
-                            }
-                        }
-                        let addedWMSLayer = L.tileLayer.wms(
-                            wmsBaseUrl,
-                            {
-                                layers: layerNamesString,
-                                format: 'image/png',
-                                transparent: true
-                            }
-                        ).addTo(this.map);
-                    }
-                }
-            }
-        }, jobId);
-    }
-
-    btn_onExecute() {
-        this.currentInput = undefined;
-        this.disableAllDrawer();
-        this.executionPressed = true;
-        this.wpsExecuteLoading = true;
-        this.inputGenerator = new InputGenerator();
-        this.outputGenerator = new OutputGenerator();
-        let generatedInputs = [];
-        let generatedOutputs = [];
-        // create inputs
-        for (let input of this.processOffering.process.inputs) {
-            if (input.literalData
-                && input.literalData != undefined
-                && input.enteredValue
-                && input.enteredValue != undefined
-                && input.enteredValue.length > 0) {
-                var literalInput =
-                    this.inputGenerator.createLiteralDataInput_wps_1_0_and_2_0(
-                        input.identifier,
-                        undefined,
-                        undefined,
-                        input.enteredValue);
-                generatedInputs.push(literalInput);
-            }
-            if (input.boundingBoxData
-                && input.boundingBoxData != undefined
-                && input.validBbox != undefined
-                && input.validBbox == true) {
-                var bboxInput =
-                    this.inputGenerator.createBboxDataInput_wps_1_0_and_2_0(
-                        input.identifier,
-                        input.selectedCRS,
-                        undefined,
-                        input.botLeft.indexOf(' ') > -1 ? input.botLeft : input.botLeft.replace(',', ' '),
-                        input.topRight.indexOf(' ') > -1 ? input.topRight : input.topRight.replace(',', ' ')
-                    );
-                generatedInputs.push(bboxInput);
-            }
-            if (input.complexData
-                && input.complexData != undefined
-                && input.enteredValue
-                && input.enteredValue != undefined
-                && input.enteredValue.length > 0) {
-                var complexInput =
-                    this.inputGenerator.createComplexDataInput_wps_1_0_and_2_0(
-                        input.identifier,
-                        input.selectedFormat.mimeType,
-                        input.selectedFormat.schema,
-                        input.selectedFormat.encoding,
-                        input.selectedInputType == "option1",
-                        input.enteredValue);
-                generatedInputs.push(complexInput);
-            }
-        }
-
-        // create outputs
-        for (let output of this.processOffering.process.outputs) {
-            var newOutput;
-            if (output.literalData
-                && output.literalData != undefined
-                && output.selectedTransmissionMode != 'SELECT_TRANSMISSION_MODE_HINT') {
-                switch (this.selectedWpsServiceVersion) {
-                    case "1.0.0":
-                        newOutput = this.outputGenerator.createLiteralOutput_WPS_1_0(
-                            output.identifier,
-                            output.selectedTransmissionMode == "reference"
-                        );
-                        generatedOutputs.push(newOutput);
-                        break;
-                    case "2.0.0":
-                    default:
-                        newOutput = this.outputGenerator.createLiteralOutput_WPS_2_0(
-                            output.identifier,
-                            output.selectedTransmissionMode
-                        );
-                        generatedOutputs.push(newOutput);
-                        break;
-                }
-            }
-            if (output.boundingBoxData
-                && output.boundingBoxData != undefined
-                && output.selectedTransmissionMode != 'SELECT_TRANSMISSION_MODE_HINT') {
-                switch (this.selectedWpsServiceVersion) {
-                    case "1.0.0":
-                        newOutput = this.outputGenerator.createLiteralOutput_WPS_1_0(
-                            output.identifier,
-                            output.selectedTransmissionMode == "reference"
-                        );
-                        generatedOutputs.push(newOutput);
-                        break;
-                    case "2.0.0":
-                    default:
-                        newOutput = this.outputGenerator.createLiteralOutput_WPS_2_0(
-                            output.identifier,
-                            output.selectedTransmissionMode
-                        );
-                        generatedOutputs.push(newOutput);
-                        break;
-                }
-            }
-            if (output.complexData
-                && output.complexData != undefined
-                && output.selectedTransmissionMode != 'SELECT_TRANSMISSION_MODE_HINT'
-                && output.selectedFormat != 'SELECT_MIMETYPE_HINT') {
-                switch (this.selectedWpsServiceVersion) {
-                    case "1.0.0":
-                        newOutput = this.outputGenerator.createComplexOutput_WPS_1_0(
-                            output.identifier,
-                            output.selectedFormat.mimeType,
-                            output.selectedFormat.schema,
-                            output.selectedFormat.encoding,
-                            undefined,
-                            output.selectedTransmissionMode == "reference",
-                            undefined,
-                            undefined
-                        );
-                        generatedOutputs.push(newOutput);
-                        break;
-                    case "2.0.0":
-                    default:
-                        newOutput = this.outputGenerator.createComplexOutput_WPS_2_0(
-                            output.identifier,
-                            output.selectedFormat.mimeType,
-                            output.selectedFormat.schema,
-                            output.selectedFormat.encoding,
-                            output.selectedTransmissionMode
-                        );
-                        generatedOutputs.push(newOutput);
-                        break;
-                }
-            }
-        }
-
-        // execute the request
-        if (this.processOffering.selectedExecutionMode.split("-")[0] == 'sync') {
-            this.webProcessingService.execute(
-                (callback) => {
-                    if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
-                        this.wpsExecuteLoading = false;
-                    } else {
-                        this.executeResponse = callback.executeResponse;
-                        this.responseDocumentAvailable = true;
-                        this.wpsExecuteLoading = false;
-                        let jobId = this.executeResponse.responseDocument.jobId;
-                        // add inputs as layers:
-                        for (let input of this.processOffering.process.inputs) {
-                            if (input.selectedFormat && input.selectedFormat != undefined) {
-                                let selectedFormat = input.selectedFormat;
-                                if (selectedFormat.mimeType
-                                    && selectedFormat.mimeType != undefined
-                                    && selectedFormat.mimeType == "application/vnd.geo+json"
-                                    && input.selectedInputType == 'option4') {
-                                    let geojsonInput = JSON.parse(input.enteredValue);
-                                    for (let feature of geojsonInput.features) {
-                                        feature.properties['INPUT'] = input.identifier;
-                                    }
-                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                                    this.map.removeLayer(input.mapItems);
-                                    this.map.removeLayer(this.allDrawnItems);
-                                    this.allDrawnItems.removeLayer(input.mapItems);
-                                } else if (input.boundingBoxData &&
-                                    input.boundingBoxData != undefined &&
-                                    input.selectedCRS == 'EPSG:4326') {
-                                    // bounding box input:
-                                    let geojsonInput = this.bboxToGeojson(input, true);
-                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                                    this.map.removeLayer(input.mapItems);
-                                    this.map.removeLayer(this.allDrawnItems);
-                                    this.allDrawnItems.removeLayer(input.mapItems);
-                                }
-                            }
-                        }
-                        // this.map.removeLayer(this.allDrawnItems);
-                        // add outputs as layers:
-                        for (let output of this.executeResponse.responseDocument.outputs) {
-                            if (output.data.complexData && output.data.complexData != undefined) {
-                                let complexData = output.data.complexData;
-                                if (complexData.mimeType
-                                    && complexData.mimeType != undefined
-                                    && complexData.mimeType == 'application/vnd.geo+json') {
-                                    let geojsonOutput = JSON.parse(complexData.value);
-                                    for (let feature of geojsonOutput.features) {
-                                        feature.properties['OUTPUT'] = output.identifier;
-                                    }
-                                    this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
-                                } else if (output.boundingBoxData &&
-                                    output.boundingBoxData != undefined &&
-                                    output.selectedCRS == 'EPSG:4326') {
-                                    // bounding box input:
-                                    let geojsonInput = this.bboxToGeojson(output, false);
-                                    this.addLayerOnMap(output.identifier, geojsonInput, true, jobId);
-                                    this.map.removeLayer(output.mapItems);
-                                    this.map.removeLayer(this.allDrawnItems);
-                                    this.allDrawnItems.removeLayer(output.mapItems);
-                                }else if (complexData.mimeType
-                                    && complexData.mimeType != undefined
-                                    && complexData.mimeType == 'application/WMS') {
-                                    // get wms URL:
-                                    let wmsTargetUrl = complexData.value;
-                                    wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
-                                    wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
-                                    // encode URL:
-                                    let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
-                                    let resultsArray = regex.exec(wmsTargetUrl);
-                                    let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
-                                    let wmsBaseUrl = wmsTargetUrl.split("?")[0];
-                                    wmsBaseUrl = wmsBaseUrl + '?';
-                                    let wmsLayer = {
-                                        name: 'Output: ' + output.identifier,
-                                        type: 'wms',
-                                        visible: true,
-                                        url: wmsBaseUrl,
-                                        layerParams: {
-                                            layers: layerNamesString,
-                                            format: 'image/png',
-                                            transparent: true
-                                        }
-                                    }
-                                    let addedWMSLayer = L.tileLayer.wms(
-                                        wmsBaseUrl,
-                                        {
-                                            layers: layerNamesString,
-                                            format: 'image/png',
-                                            transparent: true
-                                        }
-                                    ).addTo(this.map);
-                                }
-                            }
-                        }
-                        this.step = 3;
-                    }
-                },
-                this.selectedProcessIdentifier,
-                this.processOffering.selectedResponseFormat,
-                this.processOffering.selectedExecutionMode.split("-")[0],
-                false, // lineage
-                generatedInputs,
-                generatedOutputs
-            );
-        } else {
-            this.webProcessingService.execute(
-                (callback) => {
-                    if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
-                        this.wpsExecuteLoading = false;
-                    } else {
-                        this.executeResponse = callback.executeResponse;
-                        this.responseDocument = this.executeResponse.responseDocument;
-                        this.responseDocumentAvailable = true;
-                        let jobId = this.executeResponse.responseDocument.jobId;
-                        this.wpsExecuteLoading = false;
-                        // add inputs as layers:
-                        for (let input of this.processOffering.process.inputs) {
-                            if (input.selectedFormat && input.selectedFormat != undefined) {
-                                let selectedFormat = input.selectedFormat;
-                                if (selectedFormat.mimeType
-                                    && selectedFormat.mimeType != undefined
-                                    && selectedFormat.mimeType == "application/vnd.geo+json"
-                                    && input.selectedInputType == 'option4') {
-                                    let geojsonInput = JSON.parse(input.enteredValue);
-                                    for (let feature of geojsonInput.features) {
-                                        feature.properties['INPUT'] = input.identifier;
-                                    }
-                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                                    this.map.removeLayer(this.allDrawnItems);
-                                    this.map.removeLayer(input.mapItems);
-                                    this.allDrawnItems.removeLayer(input.mapItems);
-                                } else if (input.boundingBoxData &&
-                                    input.boundingBoxData != undefined &&
-                                    input.selectedCRS == 'EPSG:4326') {
-                                    // bounding box input:
-                                    let geojsonInput = this.bboxToGeojson(input, true);
-                                    this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                                    this.map.removeLayer(input.mapItems);
-                                    this.map.removeLayer(this.allDrawnItems);
-                                    this.allDrawnItems.removeLayer(input.mapItems);
-                                }
-                            }
-                        }
-                        // this.map.removeLayer(this.allDrawnItems);
-                        // add outputs as layers:
-                        if (this.executeResponse.responseDocument.outputs != undefined) {
-                            for (let output of this.executeResponse.responseDocument.outputs) {
-                                if (output.data.complexData && output.data.complexData != undefined) {
-                                    let complexData = output.data.complexData;
-                                    if (complexData.mimeType
-                                        && complexData.mimeType != undefined
-                                        && complexData.mimeType == 'application/vnd.geo+json') {
-                                        let geojsonOutput = JSON.parse(complexData.value);
-                                        for (let feature of geojsonOutput.features) {
-                                            feature.properties['OUTPUT'] = output.identifier;
-                                        }
-                                        this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
-                                    } else if (output.boundingBoxData &&
-                                        output.boundingBoxData != undefined &&
-                                        output.selectedCRS == 'EPSG:4326') {
-                                        // bounding box input:
-                                        let geojsonInput = this.bboxToGeojson(output, false);
-                                        this.addLayerOnMap(output.identifier, geojsonInput, true, jobId);
-                                        this.map.removeLayer(output.mapItems);
-                                        this.map.removeLayer(this.allDrawnItems);
-                                        this.allDrawnItems.removeLayer(output.mapItems);
-                                    } else if (complexData.mimeType
-                                        && complexData.mimeType != undefined
-                                        && complexData.mimeType == 'application/WMS') {
-                                        // get wms URL:
-                                        let wmsTargetUrl = complexData.value;
-                                        wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
-                                        wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
-                                        // encode URL:
-                                        let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
-                                        let resultsArray = regex.exec(wmsTargetUrl);
-                                        let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
-                                        let wmsBaseUrl = wmsTargetUrl.split("?")[0];
-                                        wmsBaseUrl = wmsBaseUrl + '?';
-                                        let wmsLayer = {
-                                            name: 'Output: ' + output.identifier,
-                                            type: 'wms',
-                                            visible: true,
-                                            url: wmsBaseUrl,
-                                            layerParams: {
-                                                layers: layerNamesString,
-                                                format: 'image/png',
-                                                transparent: true
-                                            }
-                                        }
-                                        let addedWMSLayer = L.tileLayer.wms(
-                                            wmsBaseUrl,
-                                            {
-                                                layers: layerNamesString,
-                                                format: 'image/png',
-                                                transparent: true
-                                            }
-                                        ).addTo(this.map);
-                                    }
-                                }
-                            }
-                        }
-                        this.step = 3;
-                    }
-                },
-                this.selectedProcessIdentifier,
-                this.processOffering.selectedResponseFormat,
-                this.processOffering.selectedExecutionMode.split("-")[0],
-                false, // lineage
-                generatedInputs,
-                generatedOutputs
-            );
-        }
-    }
-
-    responseDocument: any;
 
     isCircle = function (layer) {
         if (layer._mRadius) {
@@ -1391,41 +644,18 @@ export class AppComponent {
         "opacity": 0.65
     };
 
-    bboxToGeojson(bboxInput, isInput: boolean) {
-        let geojsonInput = {
-            "type": "FeatureCollection",
-            "features": [
-                {
-                    "type": "Feature",
-                    "properties": {
-                    },
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": []
-                    }
-                }
-            ]
-        }          
-        if (isInput) {
-            geojsonInput.features[0].properties["INPUT"] = bboxInput.identifier;
-        } else {
-            geojsonInput.features[0].properties["OUTPUT"] = bboxInput.identifier;
-        }
-        let y_min = Number(bboxInput.botLeft.split(" ")[0]);
-        let x_min = Number(bboxInput.botLeft.split(" ")[1]);
-        let y_max = Number(bboxInput.topRight.split(" ")[0]);
-        let x_max = Number(bboxInput.topRight.split(" ")[1]);
-        let polygonBbox = [];
-        polygonBbox.push([x_min, y_min]);
-        polygonBbox.push([x_min, y_max]);
-        polygonBbox.push([x_max, y_max]);
-        polygonBbox.push([x_max, y_min]);
-        polygonBbox.push([x_min, y_min]);
-        geojsonInput.features[0].geometry.coordinates.push(polygonBbox);
-        return geojsonInput;
+    addWMSLayerOnMap = (baseUrl: string, layersNames: string) => {
+        let addedWMSLayer = L.tileLayer.wms(
+            baseUrl,
+            {
+                layers: layersNames,
+                format: 'image/png',
+                transparent: true
+            }
+        ).addTo(this.map);
     }
 
-    addLayerOnMap(name, feature, isInput, jobId) {
+    addLayerOnMap = (name, feature, isInput, jobId) => {
         let layerToAdd = L.geoJSON(
             feature, {
                 style: feature.features[0].geometry.type == 'LineString' ?
@@ -1509,7 +739,7 @@ export class AppComponent {
                                     }
                                     this.currentInput.enteredValue = JSON.stringify(inputFeatureCollection);
                                 }
-                                this.checkInputsForCompleteness("");
+                                this.specification.checkInputsForCompleteness("");
                             }
                         },
                         mouseover: (event) => {
@@ -1571,7 +801,8 @@ export class AppComponent {
             this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Input:</b> " + name] = layerToAdd;
         } else {
             this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + name] = layerToAdd;
-            this.geojsonOutputsExist = true;
+            this.dataService.setGeojsonOutputExists(true);
         }
     }
+
 }
