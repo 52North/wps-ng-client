@@ -32,6 +32,7 @@
     "PROCESS_INPUT_DEFAULTVALUE": "default value",
     "SELECT_DEFAULT_VALUES": "Select available default values?",
     "SELECT_DEFAULT_VALUES_TOOLTIP": "select default values",
+    "SELECT_DEFAULT_VALUE_TOOLTIP": "select default value",
     "SELECT_FORMAT": "Select MimeType/Schema/Encoding",
     "SELECT_MIMETYPE_HINT": "Select a format..",
     "INPUT_AS_REFERENCE": "As Reference (Link to available ressource)",
@@ -49,11 +50,13 @@
     "DRAW_A_RECTANGLE_TOOLTIP": "Place a Rectangle",
     "DRAW_A_CIRCLE_TOOLTIP": "Place a Circle",
     "DRAW_A_MARKER_TOOLTIP": "Place a Point",
+    "DRAW_BY_SELECT_TOOLTIP": "Select from outputs",
     "END_DRAW_A_POLYLINE_TOOLTIP": "Stop placing LineStrings",
     "END_DRAW_A_POLYGON_TOOLTIP": "Stop placing Polygons",
     "END_DRAW_A_RECTANGLE_TOOLTIP": "Stop placing Rectangles",
     "END_DRAW_A_CIRCLE_TOOLTIP": "Stop placing Circles",
     "END_DRAW_A_MARKER_TOOLTIP": "Stop placing Points",
+    "END_DRAW_BY_SELECT_TOOLTIP": "Stop selection from outputs",
     "SELECT_CRS": "Coodinate reference system",
     "SELECT_CRS_HINT": "Select a coodinate reference system",
     "INPUT_AS_COORDS": "Specification of corners",
@@ -89,5 +92,13 @@
     
     "INFO_PANEL_HEADING": "GeoJSON information panel",
     "INFO_PANEL_HOVER_TIP": "Move the mouse over a layer",
-    "IN_OUTPUT_TYPE": "Type"
+    "IN_OUTPUT_TYPE": "Type",
+
+    "WPS_RESPONSES": "WPS Response",
+    "WPS_RESPONSES_DESCRIPTION": "ResponseDocument & Outputs",
+    "WPS_RESPONSE_STATUS_DOCUMENT": "Status document",
+    "PROCESS_IDENTIFIER": "Process identifier",
+    "RESPONSE_STATUS": "Response status",
+    "REFRESH_STATUS": "refresh",
+    "GET_RESULT": "get Result"
 }

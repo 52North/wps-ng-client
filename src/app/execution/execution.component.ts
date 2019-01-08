@@ -88,7 +88,7 @@ export class ExecutionComponent implements OnInit {
   btn_onExecute() {
     this.dataService.setCurrentInput(undefined);
     this.disableAllDrawer();
-    this.wpsExecuteLoading = true;
+    this.dataService.setWpsExecuteLoading(true);
     this.inputGenerator = new InputGenerator();
     this.outputGenerator = new OutputGenerator();
     let generatedInputs = [];
@@ -223,11 +223,13 @@ export class ExecutionComponent implements OnInit {
         (callback) => {
           if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
             this.wpsExecuteLoading = false;
+            this.dataService.setWpsExecuteLoading(false);
           } else {
             this.executeResponse = callback.executeResponse;
             this.dataService.setExecuteResponse(this.executeResponse);
             this.responseDocumentAvailable = true;
             this.wpsExecuteLoading = false;
+            this.dataService.setWpsExecuteLoading(false);
             let jobId = this.executeResponse.responseDocument.jobId;
             // add inputs as layers:
             for (let input of this.processOffering.process.inputs) {
@@ -314,6 +316,7 @@ export class ExecutionComponent implements OnInit {
         (callback) => {
           if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
             this.wpsExecuteLoading = false;
+            this.dataService.setWpsExecuteLoading(false);
           } else {
             this.executeResponse = callback.executeResponse;
             this.dataService.setExecuteResponse(this.executeResponse);
@@ -321,6 +324,7 @@ export class ExecutionComponent implements OnInit {
             this.responseDocumentAvailable = true;
             let jobId = this.executeResponse.responseDocument.jobId;
             this.wpsExecuteLoading = false;
+            this.dataService.setWpsExecuteLoading(false);
             // add inputs as layers:
             for (let input of this.processOffering.process.inputs) {
               if (input.selectedFormat && input.selectedFormat != undefined) {

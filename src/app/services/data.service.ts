@@ -30,6 +30,7 @@ export class DataService {
 
   private addLayerOnMapSource = new Subject<any>();
   private geojsonOutputExistsSource = new Subject<boolean>();
+  private wpsExecuteLoadingSource = new Subject<boolean>();
 
   private executeResponseSource = new Subject<ExecuteResponse>();
   private responseDocumentSource = new Subject<ResponseDocument>();
@@ -56,6 +57,7 @@ export class DataService {
 
   addLayerOnMap$ = this.addLayerOnMapSource.asObservable();
   geojsonOutputExists$ = this.geojsonOutputExistsSource.asObservable();
+  wpsExecuteLoading$ = this.wpsExecuteLoadingSource.asObservable();
 
   executeResponse$ = this.executeResponseSource.asObservable();
   responseDocument$ = this.responseDocumentSource.asObservable();
@@ -110,6 +112,9 @@ export class DataService {
   }
   setRemoveDrawnItems(layer) {
     this.removeDrawnItemsSource.next(layer);
+  }
+  setWpsExecuteLoading(loading: boolean) {
+    this.wpsExecuteLoadingSource.next(loading);
   }
 
   addLayerOnMap(layer) {

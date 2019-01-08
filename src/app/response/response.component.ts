@@ -22,6 +22,7 @@ export class ResponseComponent implements OnInit {
 
   executionPressed: boolean;
   responseDocumentAvailable: boolean;
+  wpsExecuteLoading: boolean = false;
 
   constructor(translate: TranslateService, private dataService: DataService) {
     this.dataService.webProcessingService$.subscribe(
@@ -44,6 +45,11 @@ export class ResponseComponent implements OnInit {
         this.responseDocumentAvailable = true;
         this.executionPressed = true;
         this.responseDocument = this.executeResponse.responseDocument;
+      }
+    )
+    this.dataService.wpsExecuteLoading$.subscribe(
+      executeLoading => {
+        this.wpsExecuteLoading = executeLoading;
       }
     )
   }
