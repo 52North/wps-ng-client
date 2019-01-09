@@ -5,7 +5,7 @@ Web Processing Services client using wps-js, angular 7, angular-materials 2 and 
 
 # Live-example
 
-Test the functionalities on the [github.io page](https://mojioms.github.io/wps-ng-client/)
+Test the functionalities on the [github.io page](https://mojioms.github.io/wps-ng-client/).
 
 ## Development server
 

@@ -362,7 +362,9 @@ export class ProcessSpecificationComponent implements OnInit {
           }
         }
       } else if (input.boundingBoxData) {
+        input.selectedFormat = "SELECT_MIMETYPE_HINT";
         input.selectedCRS = 'SELECT_CRS_HINT';
+        console.log(input);
       }
     }
     // default output format:

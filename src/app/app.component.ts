@@ -328,10 +328,8 @@ export class AppComponent {
             props);
     }
 
-    // TODO: CIRCLE --> POLYGON!
     onDrawReady(event) {
         let layer = event.layer;
-        this.allDrawnItems.removeLayer(layer);
         if (this.currentInput.boundingBoxData) {
             this.currentInput.botLeft = layer._bounds._southWest.lat + ' ' + layer._bounds._southWest.lng;
             this.currentInput.topRight = layer._bounds._northEast.lat + ' ' + layer._bounds._northEast.lng;
@@ -342,6 +340,7 @@ export class AppComponent {
             }
             this.currentInput.mapItems = layer;
         } else {
+            this.allDrawnItems.removeLayer(layer);
             let inputFeatureCollection;
             if (this.currentInput.enteredValue == undefined || this.currentInput.enteredValue.length == 0) {
                 inputFeatureCollection = this.allDrawnItems.toGeoJSON();
