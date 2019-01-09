@@ -27,7 +27,7 @@
         <mat-option value='raw'>raw</mat-option>
       </mat-select>
     </mat-form-field>
-    <button (click)="btn_onExecute()" mat-raised-button color="primary">{{"EXECUTE" | translate}}</button>
+    <button [disabled]="wpsExecuteLoading" (click)="btn_onExecute()" mat-raised-button color="primary">{{"EXECUTE" | translate}}</button>
 
     <mat-progress-bar *ngIf="wpsExecuteLoading" mode="indeterminate" style="margin-top:16px;"></mat-progress-bar>
   </div>
