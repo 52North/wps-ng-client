@@ -88,6 +88,7 @@ export class ExecutionComponent implements OnInit {
   btn_onExecute() {
     this.dataService.setCurrentInput(undefined);
     this.disableAllDrawer();
+    this.wpsExecuteLoading = true;
     this.dataService.setWpsExecuteLoading(true);
     this.inputGenerator = new InputGenerator();
     this.outputGenerator = new OutputGenerator();
