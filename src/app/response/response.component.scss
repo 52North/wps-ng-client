@@ -1,5 +1,8 @@
 ::ng-deep
 
+.full-width {
+    width: 100%;
+}
 .mat-expansion-panel:not(.mat-expanded) {
     border-bottom: grey 1px solid;
 }
