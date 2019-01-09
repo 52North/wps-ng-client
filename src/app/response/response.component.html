@@ -35,10 +35,10 @@
           <mat-progress-bar style="margin-bottom: 8px;" *ngIf="responseDocument != undefined && responseDocument.percentCompleted != undefined"
               mode="determinate" value="{{responseDocument.percentCompleted}}"></mat-progress-bar>
           <button *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
-              (click)="btn_onRefreshStatus()" [disabled]="refreshInProgress" mat-raised-button color="primary">{{"REFRESH_STATUS"
+              (click)="btn_onRefreshStatus()" [disabled]="refreshing" mat-raised-button color="primary">{{"REFRESH_STATUS"
               | translate}}</button>
           <button style="margin-left: 8px;" *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
-              (click)="btn_onRefreshStatusAutomatically()" [disabled]="refreshInProgress" mat-raised-button color="accent">
+              (click)="btn_onRefreshStatusAutomatically()" [disabled]="refreshing" mat-raised-button color="accent">
               <mat-icon aria-label="refresh status automatically">{{btn_autorefresh_icon}}</mat-icon>
           </button>
           <button *ngIf="responseDocument.status == 'Succeeded'" (click)="btn_onGetResult()"

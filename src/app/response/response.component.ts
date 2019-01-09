@@ -60,44 +60,12 @@ export class ResponseComponent implements OnInit {
   ngOnInit() {
   }
 
-  btn_onRefreshStatusAutomatically() {
-    if (!this.refreshing) {
-      this.refreshing = true;
-      this.animateRefreshing();
-    }
-    this.refreshInProgress = true;
-    if (this.responseDocument.status != 'Succeeded'
-      && this.responseDocument.status.info != 'wps:ProcessSucceeded') {
-      setTimeout(() => {
-        this.btn_onRefreshStatus();
-        this.refreshInProgress = true;
-        this.btn_onRefreshStatusAutomatically();
-      }, 5000);
-    } else {
-      this.refreshing = false;
-    }
-  }
-
-  animateRefreshing() {
-    if (this.refreshing) {
-      setTimeout(() => {
-        if (this.btn_autorefresh_icon === "loop") {
-          this.btn_autorefresh_icon = "cached";
-        } else {
-          this.btn_autorefresh_icon = "loop";
-        }
-        this.animateRefreshing();
-      }, 250);
-    }
-  }
-
-  btn_onRefreshStatus() {
-    this.refreshInProgress = true;
+  refresh() {
     let jobId = this.responseDocument.jobId;
     if (this.responseDocument.version && this.responseDocument.version == "1.0.0") {
       let documentLocation = this.responseDocument.statusLocation;
       this.webProcessingService.parseStoredExecuteResponse_WPS_1_0((resp) => {
-        this.refreshing = false;
+        this.refreshInProgress = false;
         if (resp.executeResponse) {
           this.executeResponse = resp.executeResponse;
           this.responseDocument = this.executeResponse.responseDocument;
@@ -124,7 +92,6 @@ export class ResponseComponent implements OnInit {
             }
           }
         }
-        this.refreshInProgress = false;
       }, documentLocation);
     } else {
       this.webProcessingService.getStatus_WPS_2_0((response: any) => {
@@ -133,6 +100,51 @@ export class ResponseComponent implements OnInit {
         this.responseDocument = this.executeResponse.responseDocument;
       }, jobId);
     }
+  }
+
+  btn_onRefreshStatusAutomatically() {
+    if (this.responseDocument.status != 'Succeeded'
+      && this.responseDocument.status.info != 'wps:ProcessSucceeded') {
+      if (!this.refreshing) {
+        this.refreshing = true;
+        this.animateRefreshing();
+      }
+      setTimeout(() => {
+        if (this.refreshing) {
+          console.log("refreshing");
+          this.refreshInProgress = true;
+          this.refresh();
+          this.btn_onRefreshStatusAutomatically();
+        }
+      }, 5000);
+    } else {
+      this.refreshing = false;
+      this.refreshInProgress = false;
+    }
+  }
+
+  animateRefreshing() {
+    if (this.refreshing) {
+      if (this.responseDocument.status != 'Succeeded'
+        && this.responseDocument.status.info != 'wps:ProcessSucceeded') {
+        setTimeout(() => {
+          if (this.btn_autorefresh_icon === "loop") {
+            this.btn_autorefresh_icon = "cached";
+          } else {
+            this.btn_autorefresh_icon = "loop";
+          }
+          this.animateRefreshing();
+        }, 250);
+      } else {
+        this.refreshing = false;
+        this.refreshInProgress = false;
+      }
+      console.log(this.refreshing);
+    }
+  }
+
+  btn_onRefreshStatus() {
+    this.refresh();
   }
 
   btn_onGetResult() {
