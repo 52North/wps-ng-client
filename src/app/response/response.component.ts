@@ -2,6 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DataService } from '../services/data.service';
 import { ResponseDocument, ExecuteResponse } from '../model/execute-response';
+import { HttpGetService } from '../services/http-get.service';
 
 declare var WpsService: any;
 
@@ -26,8 +27,9 @@ export class ResponseComponent implements OnInit {
   refreshInProgress: boolean = false;
   btn_autorefresh_icon: string = "loop";
   refreshing: boolean = false;
+  fetchingReferencedOutputs: boolean = false;
 
-  constructor(translate: TranslateService, private dataService: DataService) {
+  constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
     this.dataService.webProcessingService$.subscribe(
       wps => {
         this.webProcessingService = wps;
@@ -111,7 +113,6 @@ export class ResponseComponent implements OnInit {
       }
       setTimeout(() => {
         if (this.refreshing) {
-          console.log("refreshing");
           this.refreshInProgress = true;
           this.refresh();
           this.btn_onRefreshStatusAutomatically();
@@ -139,7 +140,6 @@ export class ResponseComponent implements OnInit {
         this.refreshing = false;
         this.refreshInProgress = false;
       }
-      console.log(this.refreshing);
     }
   }
 
@@ -155,7 +155,7 @@ export class ResponseComponent implements OnInit {
       let jobId = this.executeResponse.responseDocument.jobId;
       // add outputs as layers:
       for (let output of this.executeResponse.responseDocument.outputs) {
-        if (output.data.complexData && output.data.complexData != undefined) {
+        if (output.reference == undefined && output.data.complexData && output.data.complexData != undefined) {
           let complexData = output.data.complexData;
           if (complexData.mimeType
             && complexData.mimeType != undefined
@@ -194,6 +194,19 @@ export class ResponseComponent implements OnInit {
         }
       }
     }, jobId);
+  }
+
+  btn_fetchAndVisualize(output: any, jobId: string) {
+    this.fetchingReferencedOutputs = true;
+    this.httpGetService.getReferencedOutput(output.reference.href)
+      .subscribe((data: any) => {
+        for (let feature of data.features) {
+          feature.properties['OUTPUT'] = output.identifier;
+        }
+        this.addLayerOnMap(output.identifier, data, false, jobId);
+        this.fetchingReferencedOutputs = false;
+        output.isFetched = true;
+      });
   }
 
   setExpanded = (opened: boolean) => {

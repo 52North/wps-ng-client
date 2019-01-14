@@ -13,3 +13,15 @@ export class ResponseDocument {
     statusLocation: any;
     version: any;
 }
+
+export class ReferencedOutput {
+    identifier: string;
+    reference: Reference;
+}
+
+export class Reference {
+    encoding: string;
+    format: string;
+    href: string;
+    schema: string;
+}

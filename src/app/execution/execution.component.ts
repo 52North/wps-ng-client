@@ -4,7 +4,7 @@ import { environment } from '../../environments/environment';
 import { TranslateService } from '@ngx-translate/core';
 import { DataService } from '../services/data.service';
 import { ProcessOffering, ProcessOfferingProcess } from '../model/process-offering';
-import { ExecuteResponse, ResponseDocument } from '../model/execute-response';
+import { ExecuteResponse, ResponseDocument, ReferencedOutput } from '../model/execute-response';
 
 declare var WpsService: any;
 declare var InputGenerator: any;
@@ -60,13 +60,11 @@ export class ExecutionComponent implements OnInit {
     this.dataService.processInputsDone$.subscribe(
       processInputsDone => {
         this.processInputsDone = processInputsDone;
-        console.log(this.processInputsDone);
       }
     )
     this.dataService.getCapSuccess$.subscribe(
       success => {
         this.wpsGetCapSuccess = success;
-        console.log(this.wpsGetCapSuccess);
         this.wpsGetCapFail = !success;
       }
     )
@@ -259,7 +257,7 @@ export class ExecutionComponent implements OnInit {
             }
             // add outputs as layers:
             for (let output of this.executeResponse.responseDocument.outputs) {
-              if (output.data.complexData && output.data.complexData != undefined) {
+              if (output.reference == undefined && output.data.complexData && output.data.complexData != undefined) {
                 let complexData = output.data.complexData;
                 if (complexData.mimeType
                   && complexData.mimeType != undefined
@@ -355,7 +353,7 @@ export class ExecutionComponent implements OnInit {
             // add outputs as layers:
             if (this.executeResponse.responseDocument.outputs != undefined) {
               for (let output of this.executeResponse.responseDocument.outputs) {
-                if (output.data.complexData && output.data.complexData != undefined) {
+                if (output.reference == undefined && output.reference == undefined && output.data.complexData && output.data.complexData != undefined) {
                   let complexData = output.data.complexData;
                   if (complexData.mimeType
                     && complexData.mimeType != undefined

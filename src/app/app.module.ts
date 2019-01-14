@@ -20,6 +20,7 @@ import { LeafletDrawModule } from '@asymmetrik/ngx-leaflet-draw';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { ClipboardModule } from 'ngx-clipboard';
 
 import { AppComponent } from './app.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
@@ -66,6 +67,7 @@ export function createTranslateLoader(http: HttpClient) {
     MatSelectModule,
     MatToolbarModule,
     MatTooltipModule,
+    ClipboardModule,
     LeafletModule.forRoot(),
     LeafletDrawModule.forRoot()
   ],

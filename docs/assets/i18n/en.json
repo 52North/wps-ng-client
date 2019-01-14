@@ -89,6 +89,7 @@
     "OUTPUT_SCHEMA": "Schema",
     "OUTPUT_ENCODING": "Encoding",
     "OUTPUT_VALUE": "Value",
+    "OUTPUT_RESOURCE": "Reference to resource",
     
     "INFO_PANEL_HEADING": "GeoJSON information panel",
     "INFO_PANEL_HOVER_TIP": "Move the mouse over a layer",
@@ -100,5 +101,7 @@
     "PROCESS_IDENTIFIER": "Process identifier",
     "RESPONSE_STATUS": "Response status",
     "REFRESH_STATUS": "refresh",
-    "GET_RESULT": "get Result"
+    "GET_RESULT": "get Result",
+    "COPY_TO_CLIPBOARD": "Copy to clipboard",
+    "FETCH_AND_VISUALIZE": "fetch & visualize output"
 }

@@ -186,7 +186,6 @@ export class ProcessSpecificationComponent implements OnInit {
         // feedback to user: describeProcess was errorneous
       }
       this.dataService.setProcessOffering(procOffering);
-      console.log(procOffering);
     }, this.selectedProcessIdentifier);
   }
 
@@ -335,37 +334,6 @@ export class ProcessSpecificationComponent implements OnInit {
         }
         if (input.selectedFormat.mimeType == "application/vnd.geo+json") {
           input.selectedInputType = 'option4';
-        }
-      } else if (input.literalData) {
-        input.selectedFormat = "SELECT_MIMETYPE_HINT";
-        // check for default mimetype:
-        console.log(input);
-        if (environment.defaultMimeType
-          && environment.defaultMimeType != undefined) {
-          if (input.literalData.formats != undefined) {
-            for (let format of input.literalData.formats) {
-              if (format.mimeType == environment.defaultMimeType) {
-                if (!mimeTypeFound) {
-                  mimeTypeFound = true;
-                  input.selectedFormat = format;
-                }
-                if (environment.defaultSchema
-                  && environment.defaultSchema != undefined
-                  && environment.defaultSchema == format.schema) {
-                  schemaFound = true;
-                  input.selectedFormat = format;
-                }
-                if (environment.defaultEncoding
-                  && environment.defaultEncoding != undefined
-                  && environment.defaultEncoding == format.encoding) {
-                  if (!schemaFound) {
-                    encodingFound = true;
-                    input.selectedFormat = format;
-                  }
-                }
-              }
-            }
-          }
         }
       } else if (input.boundingBoxData) {
         input.selectedFormat = "SELECT_MIMETYPE_HINT";

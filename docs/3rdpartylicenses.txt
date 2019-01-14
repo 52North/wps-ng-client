@@ -488,6 +488,12 @@ SOFTWARE.
 
 @angular/material/divider
 
+ngx-window-token
+MIT
+
+ngx-clipboard
+MIT
+
 zone.js
 MIT
 The MIT License

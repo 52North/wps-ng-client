@@ -89,6 +89,7 @@
     "OUTPUT_SCHEMA": "Schema",
     "OUTPUT_ENCODING": "Encoding",
     "OUTPUT_VALUE": "Wert",
+    "OUTPUT_RESOURCE": "Referenz auf Ressource",
     
     "INFO_PANEL_HEADING": "GeoJSON Informationsanzeige",
     "INFO_PANEL_HOVER_TIP": "Bewege den Mauszeiger über ein Layer",
@@ -100,5 +101,7 @@
     "PROCESS_IDENTIFIER": "Process Identifier",
     "RESPONSE_STATUS": "Antwortstatus",
     "REFRESH_STATUS": "aktualisieren",
-    "GET_RESULT": "Hole Ergebnis"
+    "GET_RESULT": "Hole Ergebnis",
+    "COPY_TO_CLIPBOARD": "Kopieren",
+    "FETCH_AND_VISUALIZE": "Hole & visualisiere Ausgabe"
 }
