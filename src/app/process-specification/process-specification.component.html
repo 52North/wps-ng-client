@@ -68,27 +68,12 @@
         <div fxLayout="row" class="input-div" *ngIf="input.literalData && input.literalData.literalDataDomains && input.literalData.literalDataDomains[0].defaultValue">
           <p fxFlex="50">{{"PROCESS_INPUT_DEFAULTVALUE" | translate}}:</p>
           <p fxFlex>{{input.literalData.literalDataDomains[0].defaultValue}}</p>
-          <button (click)="input.enteredValue=input.literalData.literalDataDomains[0].defaultValue;" mat-icon-button
+          <button (click)="setDefaultValue(input,input.literalData.literalDataDomains[0].defaultValue);" mat-icon-button
             color="primary" matTooltip="{{'SELECT_DEFAULT_VALUE_TOOLTIP' | translate}}">
             <mat-icon aria-label="select default value">input</mat-icon>
           </button>
         </div>
 
-        <div *ngIf="input.literalData && input.literalData.formats" fxLayout="row" class="literal-input">
-          <mat-form-field fxFlex style="width:100%; padding-top: 0px;">
-            <p>{{"SELECT_FORMAT" | translate}}</p>
-            <mat-select class='selectOptionSmall' (selectionChange)="onInputFormatSelectionChange($event,input)"
-              [(value)]="input.selectedFormat" [ngClass]="selected">
-              <mat-option value='SELECT_MIMETYPE_HINT'>{{ "SELECT_MIMETYPE_HINT"
-                | translate }}</mat-option>
-              <mat-option *ngFor="let format of input.literalData.formats" [value]="format">
-                {{format.mimeType + (format.encoding? ", encoding: " +
-                format.encoding : "") + (format.schema? ", schema: " +
-                format.schema: "")}}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
         <div *ngIf="input.literalData" fxLayout="row" class="literal-input">
           <mat-form-field fxFlex appearance="outline">
             <input (input)="checkInputsForCompleteness($event)" matInput placeholder="{{'LITERAL_VALUE_HINT' | translate}}"

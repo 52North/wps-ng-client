@@ -28,7 +28,7 @@ export class AppComponent {
     title = 'wps-ng-client';
     options = {
         layers: [
-            tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+            tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
         ],
         zoom: 5,
         center: latLng(
@@ -38,7 +38,7 @@ export class AppComponent {
     };
     layersControl = {
         baseLayers: {
-            'Open Street Map': tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+            'Open Street Map': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
         },
         overlays: {
         }
@@ -170,14 +170,14 @@ export class AppComponent {
     ngOnInit() {
         this.options = {
             layers: [
-                tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+                tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
             ],
             zoom: 12,
             center: latLng(51.9487949, 7.6237527)
         };
         this.layersControl = {
             baseLayers: {
-                'Open Street Map': tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+                'Open Street Map': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
             },
             overlays: {
             }

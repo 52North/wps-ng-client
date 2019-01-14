@@ -156,9 +156,10 @@ export class ProcessSpecificationComponent implements OnInit {
     this.geojsonOutputsExist = false;
   }
 
+  onTransmissionModeSelectionChange(event) {
+  }
+
   describeProcess = () => {
-    console.log("describeProcess());");
-    console.log(this.selectedProcessIdentifier);
     this.webProcessingService.describeProcess_GET((callback) => {
       let procOffering: ProcessOffering = undefined;
       if (callback.processOffering && callback.processOffering != undefined) {
@@ -185,6 +186,7 @@ export class ProcessSpecificationComponent implements OnInit {
         // feedback to user: describeProcess was errorneous
       }
       this.dataService.setProcessOffering(procOffering);
+      console.log(procOffering);
     }, this.selectedProcessIdentifier);
   }
 
@@ -199,7 +201,7 @@ export class ProcessSpecificationComponent implements OnInit {
       if (input.minOccurs > 0 &&
         (input.enteredValue == undefined ||
           input.enteredValue.length == 0) &&
-        !input.boundingBoxData) {
+        input.boundingBoxData == undefined) {
         boolTemp = false;
       }
       if (input.minOccurs > 0 &&
@@ -221,7 +223,6 @@ export class ProcessSpecificationComponent implements OnInit {
     this.hasUnsetDefaultValues = hasDefValues;
     this.processInputsDone = boolTemp;
     this.dataService.setProcessInputsDone(boolTemp);
-    console.log(this.processInputsDone);
   }
 
   setTransmissionModes(output) {
@@ -232,6 +233,11 @@ export class ProcessSpecificationComponent implements OnInit {
         output.selectedTransmissionMode = environment.defaultTransmissionMode;
       }
     }
+  }
+
+  setDefaultValue(input, value) {
+    input.enteredValue = value;
+    this.checkInputsForCompleteness("");
   }
 
   setDefaultLiteralValue() {
@@ -295,7 +301,6 @@ export class ProcessSpecificationComponent implements OnInit {
     let mimeTypeFound: boolean = false;
     let schemaFound: boolean = false;
     let encodingFound: boolean = false;
-    console.log(this.processOffering);
     for (let input of this.processOffering.process.inputs) {
       mimeTypeFound = false;
       schemaFound = false;
@@ -333,9 +338,10 @@ export class ProcessSpecificationComponent implements OnInit {
         }
       } else if (input.literalData) {
         input.selectedFormat = "SELECT_MIMETYPE_HINT";
+        // check for default mimetype:
+        console.log(input);
         if (environment.defaultMimeType
           && environment.defaultMimeType != undefined) {
-          console.log(input);
           if (input.literalData.formats != undefined) {
             for (let format of input.literalData.formats) {
               if (format.mimeType == environment.defaultMimeType) {
@@ -364,7 +370,6 @@ export class ProcessSpecificationComponent implements OnInit {
       } else if (input.boundingBoxData) {
         input.selectedFormat = "SELECT_MIMETYPE_HINT";
         input.selectedCRS = 'SELECT_CRS_HINT';
-        console.log(input);
       }
     }
     // default output format:
@@ -406,11 +411,9 @@ export class ProcessSpecificationComponent implements OnInit {
 
   processInputsChanged($event) {
     this.processInputsDone = $event;
-    console.log(this.processInputsDone);
   }
 
   processSelected(event) {
-    console.log(this.selectedProcessIdentifier);
     this.dataService.setSelectedProcessIdentifier(this.selectedProcessIdentifier);
     if (this.selectedProcessIdentifier == "SELECT_PROCESS_HINT") {
       this.selectedProcess = undefined;
@@ -423,7 +426,6 @@ export class ProcessSpecificationComponent implements OnInit {
         }
       }
     } else {
-      console.log(this.processes);
       for (let process of this.processes) {
         if (this.selectedProcessIdentifier == process.identifier) {
           this.selectedProcess = process;
@@ -439,7 +441,6 @@ export class ProcessSpecificationComponent implements OnInit {
           }
         }
       }
-      console.log("describing process...");
       this.describeProcess();
     }
   }
@@ -480,8 +481,8 @@ export class ProcessSpecificationComponent implements OnInit {
     if (input.selectedFormat.mimeType != 'application/vnd.geo+json') {
       input.selectedInputType = 'option3';
     }
-    this.checkInputsForCompleteness("");
     input.enteredValue = "";
+    this.checkInputsForCompleteness("");
   }
 
   onFormatSelectionChange(event) {

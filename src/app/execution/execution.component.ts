@@ -226,6 +226,7 @@ export class ExecutionComponent implements OnInit {
             this.wpsExecuteLoading = false;
             this.dataService.setWpsExecuteLoading(false);
           } else {
+            console.log(callback);
             this.executeResponse = callback.executeResponse;
             this.dataService.setExecuteResponse(this.executeResponse);
             this.responseDocumentAvailable = true;
@@ -414,6 +415,7 @@ export class ExecutionComponent implements OnInit {
   }
 
   onResponseFormatSelected() {
+    this.dataService.setProcessOffering(this.processOffering);
   }
 
   bboxToGeojson(bboxInput, isInput: boolean) {
@@ -448,9 +450,6 @@ export class ExecutionComponent implements OnInit {
     polygonBbox.push([x_min, y_min]);
     geojsonInput.features[0].geometry.coordinates.push(polygonBbox);
     return geojsonInput;
-  }
-
-  onTransmissionModeSelectionChange(event) {
   }
 
   onExecutionModeSelected(event) {
