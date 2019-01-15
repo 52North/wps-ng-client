@@ -77,7 +77,6 @@ export class ResponseComponent implements OnInit {
     if (this.responseDocument.version && this.responseDocument.version == "1.0.0") {
       let documentLocation = this.responseDocument.statusLocation;
       this.webProcessingService.parseStoredExecuteResponse_WPS_1_0((resp) => {
-        console.log(resp);
         this.refreshInProgress = false;
         if (resp.executeResponse) {
           this.executeResponse = resp.executeResponse;
@@ -108,15 +107,16 @@ export class ResponseComponent implements OnInit {
       }, documentLocation);
     } else {
       this.webProcessingService.getStatus_WPS_2_0((response: any) => {
-        console.log(response);
         this.refreshInProgress = false;
         this.executeResponse = response.executeResponse;
         this.responseDocument = this.executeResponse.responseDocument;
-        if (this.responseDocument.status != 'Failed') {
+        if (this.responseDocument.status == 'Failed') {
           this.dataService.setResponseError({
             "textStatus": "error",
             "errorThrown": ""
           });
+        } else {
+          this.dataService.setResponseError(undefined);
         }
       }, jobId);
     }
@@ -140,11 +140,13 @@ export class ResponseComponent implements OnInit {
     } else {
       this.refreshing = false;
       this.refreshInProgress = false;
-      if (this.responseDocument.status != 'Failed') {
+      if (this.responseDocument.status == 'Failed') {
         this.dataService.setResponseError({
           "textStatus": "error",
           "errorThrown": ""
         });
+      } else {
+        this.dataService.setResponseError(undefined);
       }
     }
   }
@@ -165,10 +167,14 @@ export class ResponseComponent implements OnInit {
       } else {
         this.refreshing = false;
         this.refreshInProgress = false;
-        this.dataService.setResponseError({
-          "textStatus": "error",
-          "errorThrown": ""
-        });
+        if (this.responseDocument.status == 'Failed') {
+          this.dataService.setResponseError({
+            "textStatus": "error",
+            "errorThrown": ""
+          });
+        } else {
+          this.dataService.setResponseError(undefined);
+        }
       }
     }
   }
