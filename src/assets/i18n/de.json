@@ -11,7 +11,7 @@
     "WPS_FAIL_TOOLTIP": "Der WPS GetCapabilities request ist fehlgeschlagen.",
     
     "PROCESS_SELECTION": "WPS Prozess",
-    "PROCESS_SELECTION_DESCRIPTION": "Wähl' einen Prozess",
+    "PROCESS_SELECTION_DESCRIPTION": "Wähl' 'nen Prozess",
     "SELECT_PROCESS": "Prozess",
     "SELECT_PROCESS_HINT": "Wähle einen Prozess..",
     "PROCESS_INPUTS_DONE_TOOLTIP": "Alle erforderlichen Eingaben wurden getätigt",

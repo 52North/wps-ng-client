@@ -1,11 +1,11 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { Subscription }   from 'rxjs';
-
-import { environment } from '../../environments/environment';
+import { Subscription } from 'rxjs';
 
 import { ProcessOffering, ProcessOfferingProcess } from '../model/process-offering';
 
 import { DataService } from '../services/data.service';
+import { HttpGetService } from '../services/http-get.service';
+import { AppSettings } from '../model/app-setting';
 
 declare var WpsService: any;
 
@@ -24,14 +24,15 @@ export class ConfigurationComponent implements OnInit {
   wpsGetCapBlocking: boolean = false;
   wpsGetCapLoading: boolean = false;
   selectedWpsServiceUrl: string;
-  selWpsServiceVersion: string = "option1";
+  selWpsServiceVersion: string = "1.0.0";
   serviceUrls: string[];
   procOffering: ProcessOffering = undefined;
   procs: ProcessOfferingProcess[] = undefined;
+  settings: AppSettings;
 
   subscription: Subscription;
 
-  constructor(private dataService: DataService) { 
+  constructor(private dataService: DataService, private httpGetService: HttpGetService) {
     this.subscription = dataService.processOffering$.subscribe(
       procOffering => {
         this.procOffering = procOffering;
@@ -62,24 +63,38 @@ export class ConfigurationComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (environment.serviceUrls) {
-      this.serviceUrls = environment.serviceUrls;
-    } else {
-      this.serviceUrls = [];
-    }
-    if (environment.serviceVersion && environment.serviceVersion == "1.0.0") {
-      this.selWpsServiceVersion = "1.0.0";
-    } else {
-      this.selWpsServiceVersion = "2.0.0";
-    }
-    this.dataService.setWpsVersion(this.selWpsServiceVersion);
-    if (environment.defaultServiceUrl != undefined &&
-      environment.defaultServiceUrl < this.serviceUrls.length) {
-      this.selectedWpsServiceUrl =
-        this.serviceUrls[environment.defaultServiceUrl];
-      this.checkWPService();
-    }
+    // get AppSettings:
+    this.httpGetService.getAppSettings()
+      .subscribe((settings: AppSettings) => {
+        this.settings = settings;
+        if (settings.serviceUrls) {
+          console.log("setting serviceUrls.");
+          this.serviceUrls = settings.serviceUrls;
+        } else {
+          this.serviceUrls = [];
+        }
+        if (settings.serviceVersion && settings.serviceVersion == "1.0.0") {
+          console.log("setting serviceVersion.");
+          this.selWpsServiceVersion = "1.0.0";
+        } else {
+          console.log("setting serviceVersion.");
+          this.selWpsServiceVersion = "2.0.0";
+        }
+        this.dataService.setWpsVersion(this.selWpsServiceVersion);
+        if (settings.defaultServiceUrl != undefined &&
+          settings.defaultServiceUrl < this.serviceUrls.length) {
+          console.log("setting selectedWpsServiceUrl.");
+          this.selectedWpsServiceUrl =
+            this.serviceUrls[settings.defaultServiceUrl];
+        }
+        if (this.selectedWpsServiceUrl != undefined
+          && this.selWpsServiceVersion != undefined) {
+            console.log("checking Wps");
+          this.checkWPService();
+        }
+      });
   }
+
 
   wpsServiceVersionChange = (event) => {
     this.wpsGetCapSuccess = false;
@@ -114,12 +129,11 @@ export class ConfigurationComponent implements OnInit {
         this.dataService.setProcessInputsDone(false);
         for (let process of callback.capabilities.processes) {
           procs.push(process);
-          if (environment.defaultProcessIdentifier != undefined &&
-            environment.defaultProcessIdentifier == process.identifier) {
+          if (this.settings.defaultProcessIdentifier != undefined &&
+            this.settings.defaultProcessIdentifier == process.identifier) {
             // select default process:
             selProcId = process.identifier;
             this.dataService.setSelectedProcessIdentifier(selProcId);
-            this.dataService.setExpandedPanel(1);
             tempProc = 0;
           }
         }
@@ -132,6 +146,7 @@ export class ConfigurationComponent implements OnInit {
         this.dataService.setProcesses(procs);
         this.dataService.setSelectedProcessIdentifier(selProcId);
         this.dataService.setGetCapSuccessful(true);
+        this.dataService.setExpandedPanel(1);
       }
     });
   }

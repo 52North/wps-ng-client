@@ -1,45 +1,51 @@
 import { Component, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../environments/environment';
+import { HttpGetService } from '../services/http-get.service';
+import { AppSettings } from '../model/app-setting';
 
 @Component({
-  selector: 'app-toolbar',
-  templateUrl: './toolbar.component.html',
-  styleUrls: ['./toolbar.component.scss']
+    selector: 'app-toolbar',
+    templateUrl: './toolbar.component.html',
+    styleUrls: ['./toolbar.component.scss']
 })
 export class ToolbarComponent implements OnInit {
-    
-  selected : string = "option1";
-  translationService : TranslateService;
 
-    constructor(translate: TranslateService) { 
-        translate.setDefaultLang(environment.startLanguage);
+    selected: string = "option1";
+    translationService: TranslateService;
+
+    constructor(translate: TranslateService, private httpGetService: HttpGetService) {
+        translate.setDefaultLang("en");
         this.translationService = translate;
     }
 
     ngOnInit() {
-        if (environment.startLanguage) {
-            switch(environment.startLanguage){
-                case "de":
-                    this.selected = "option2";
-                    this.translationService.use('de');
-                    console.log("german loaded");
-                    break;
-                case "en":
-                    console.log("english loaded");
-                default:
+        this.httpGetService.getAppSettings()
+            .subscribe((settings: AppSettings) => {
+                console.log(settings);
+                // MAP SETTINGS:
+                if (settings.startLanguage) {
+                    switch (settings.startLanguage) {
+                        case "de":
+                            this.selected = "option2";
+                            this.translationService.use('de');
+                            console.log("german loaded");
+                            break;
+                        case "en":
+                            console.log("english loaded");
+                        default:
+                            this.selected = "option1";
+                            this.translationService.use('en');
+                            console.log("english loaded");
+                            break;
+                    }
+                } else {
                     this.selected = "option1";
                     this.translationService.use('en');
                     console.log("english loaded");
-                    break;
-            }
-        } else {
-            this.selected = "option1";
-            this.translationService.use('en');
-            console.log("english loaded");
-        }
+                }
+            });
     }
-    
+
     languageChange(event) {
         switch (event.value) {
             case "option2":

@@ -1,10 +1,11 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { TranslateService } from '@ngx-translate/core';
 import { DataService } from '../services/data.service';
 import { ProcessOffering, ProcessOfferingProcess } from '../model/process-offering';
 import { ExecuteResponse, ResponseDocument, ReferencedOutput } from '../model/execute-response';
+import { AppSettings } from '../model/app-setting';
+import { HttpGetService } from '../services/http-get.service';
 
 declare var WpsService: any;
 declare var InputGenerator: any;
@@ -35,9 +36,10 @@ export class ExecutionComponent implements OnInit {
   responseDocumentAvailable: boolean = false;
   selectedProcessIdentifier: string;
 
+  settings: AppSettings;
   subscription: Subscription;
 
-  constructor(translate: TranslateService, private dataService: DataService) {
+  constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
     this.dataService.webProcessingService$.subscribe(
       wps => {
         this.webProcessingService = wps;
@@ -81,6 +83,10 @@ export class ExecutionComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.httpGetService.getAppSettings()
+      .subscribe((settings: AppSettings) => {
+        this.settings = settings;
+      })
   }
 
   btn_onExecute() {

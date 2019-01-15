@@ -1,8 +1,9 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { environment } from '../../environments/environment';
 import { DataService } from '../services/data.service';
 import { ProcessOffering, ProcessOfferingProcess } from '../model/process-offering';
+import { AppSettings } from '../model/app-setting';
+import { HttpGetService } from '../services/http-get.service';
 
 declare var WpsService: any;
 
@@ -28,6 +29,7 @@ export class ProcessSpecificationComponent implements OnInit {
   processes: ProcessOfferingProcess[];
   selectedProcessIdentifier: string;
 
+  settings: AppSettings;
   hasUnsetDefaultValues: boolean = false;
   processInputsDone: boolean = false;
   geojsonOutputsExist: boolean = false;
@@ -53,7 +55,7 @@ export class ProcessSpecificationComponent implements OnInit {
 
   subscription: Subscription;
 
-  constructor(private dataService: DataService) {
+  constructor(private dataService: DataService, private httpGetService: HttpGetService) {
     this.dataService.webProcessingService$.subscribe(
       wps => {
         this.webProcessingService = wps;
@@ -154,28 +156,34 @@ export class ProcessSpecificationComponent implements OnInit {
       }
     );
     this.geojsonOutputsExist = false;
+
+    this.httpGetService.getAppSettings()
+      .subscribe((settings: AppSettings) => {
+        this.settings = settings;
+      })
   }
 
   onTransmissionModeSelectionChange(event) {
   }
 
   describeProcess = () => {
+
     this.webProcessingService.describeProcess_GET((callback) => {
       let procOffering: ProcessOffering = undefined;
       if (callback.processOffering && callback.processOffering != undefined) {
         procOffering = callback.processOffering;
         procOffering.selectedExecutionMode = "SELECT_EXECUTION_MODE_HINT";
-        if (environment.defaultExecutionMode
-          && environment.defaultExecutionMode != undefined) {
-          if (procOffering.jobControlOptions.includes(environment.defaultExecutionMode)) {
-            procOffering.selectedExecutionMode = environment.defaultExecutionMode;
+        if (this.settings.defaultExecutionMode
+          && this.settings.defaultExecutionMode != undefined) {
+          if (procOffering.jobControlOptions.includes(this.settings.defaultExecutionMode)) {
+            procOffering.selectedExecutionMode = this.settings.defaultExecutionMode;
           }
         }
         procOffering.selectedResponseFormat = "document";
-        if (environment.defaultResponseFormat
-          && environment.defaultResponseFormat != undefined) {
-          if (["document", "raw"].includes(environment.defaultResponseFormat)) {
-            procOffering.selectedResponseFormat = environment.defaultResponseFormat;
+        if (this.settings.defaultResponseFormat
+          && this.settings.defaultResponseFormat != undefined) {
+          if (["document", "raw"].includes(this.settings.defaultResponseFormat)) {
+            procOffering.selectedResponseFormat = this.settings.defaultResponseFormat;
           }
         }
         this.processOffering = procOffering;
@@ -226,10 +234,10 @@ export class ProcessSpecificationComponent implements OnInit {
 
   setTransmissionModes(output) {
     output.selectedTransmissionMode = "SELECT_TRANSMISSION_MODE_HINT";
-    if (environment.defaultTransmissionMode
-      && environment.defaultTransmissionMode != undefined) {
-      if (this.processOffering.outputTransmissionModes.includes(environment.defaultTransmissionMode)) {
-        output.selectedTransmissionMode = environment.defaultTransmissionMode;
+    if (this.settings.defaultTransmissionMode
+      && this.settings.defaultTransmissionMode != undefined) {
+      if (this.processOffering.outputTransmissionModes.includes(this.settings.defaultTransmissionMode)) {
+        output.selectedTransmissionMode = this.settings.defaultTransmissionMode;
       }
     }
   }
@@ -296,10 +304,10 @@ export class ProcessSpecificationComponent implements OnInit {
   }
 
   setDefaultFormat = () => {
-    // default input format:
     let mimeTypeFound: boolean = false;
     let schemaFound: boolean = false;
     let encodingFound: boolean = false;
+    this.httpGetService.getAppSettings()
     for (let input of this.processOffering.process.inputs) {
       mimeTypeFound = false;
       schemaFound = false;
@@ -307,23 +315,23 @@ export class ProcessSpecificationComponent implements OnInit {
       if (input.complexData) {
         input.selectedFormat = "SELECT_MIMETYPE_HINT";
         input.selectedInputType = "option3";
-        if (environment.defaultMimeType
-          && environment.defaultMimeType != undefined) {
+        if (this.settings.defaultMimeType
+          && this.settings.defaultMimeType != undefined) {
           for (let format of input.complexData.formats) {
-            if (format.mimeType == environment.defaultMimeType) {
+            if (format.mimeType == this.settings.defaultMimeType) {
               if (!mimeTypeFound) {
                 mimeTypeFound = true;
                 input.selectedFormat = format;
               }
-              if (environment.defaultSchema
-                && environment.defaultSchema != undefined
-                && environment.defaultSchema == format.schema) {
+              if (this.settings.defaultSchema
+                && this.settings.defaultSchema != undefined
+                && this.settings.defaultSchema == format.schema) {
                 schemaFound = true;
                 input.selectedFormat = format;
               }
-              if (environment.defaultEncoding
-                && environment.defaultEncoding != undefined
-                && environment.defaultEncoding == format.encoding) {
+              if (this.settings.defaultEncoding
+                && this.settings.defaultEncoding != undefined
+                && this.settings.defaultEncoding == format.encoding) {
                 if (!schemaFound) {
                   encodingFound = true;
                   input.selectedFormat = format;
@@ -348,23 +356,23 @@ export class ProcessSpecificationComponent implements OnInit {
       this.setTransmissionModes(output);
       if (output.complexData) {
         output.selectedFormat = "SELECT_MIMETYPE_HINT";
-        if (environment.defaultOutputMimeType
-          && environment.defaultOutputMimeType != undefined) {
+        if (this.settings.defaultOutputMimeType
+          && this.settings.defaultOutputMimeType != undefined) {
           for (let format of output.complexData.formats) {
-            if (format.mimeType == environment.defaultOutputMimeType) {
+            if (format.mimeType == this.settings.defaultOutputMimeType) {
               if (!mimeTypeFound) {
                 mimeTypeFound = true;
                 output.selectedFormat = format;
               }
-              if (environment.defaultOutputSchema
-                && environment.defaultOutputSchema != undefined
-                && environment.defaultOutputSchema == format.schema) {
+              if (this.settings.defaultOutputSchema
+                && this.settings.defaultOutputSchema != undefined
+                && this.settings.defaultOutputSchema == format.schema) {
                 schemaFound = true;
                 output.selectedFormat = format;
               }
-              if (environment.defaultOutputEncoding
-                && environment.defaultOutputEncoding != undefined
-                && environment.defaultOutputEncoding == format.encoding) {
+              if (this.settings.defaultOutputEncoding
+                && this.settings.defaultOutputEncoding != undefined
+                && this.settings.defaultOutputEncoding == format.encoding) {
                 if (!schemaFound) {
                   encodingFound = true;
                   output.selectedFormat = format;

@@ -2,7 +2,8 @@
 <div fxLayout="row" fxFill style="width: 100%;">
     <div style="text-align:center; margin-top: 64px;" fxFlex>
         <div fxFlex leaflet [leafletOptions]="options" [leafletLayersControl]="layersControl"
-            [leafletLayersControlOptions]="{position:'topleft'}" (leafletMapReady)="onMapReady($event)">
+            [leafletLayersControlOptions]="{position:'topleft'}" (leafletMapReady)="onMapReady($event)" [(leafletZoom)]="zoom"
+            [(leafletCenter)]="center">
             <div leafletDraw [leafletDrawOptions]="drawOptions" (leafletDrawCreated)="onDrawReady($event)"></div>
         </div>
         <div id="wps-control-container" fxFlex="nogrow">
@@ -21,7 +22,8 @@
                         [addLayerOnMap]="addLayerOnMap" [addWMSLayerOnMap]="addWMSLayerOnMap"></app-execution>
 
                     <!-- ########### WPS RESPONSE ########### -->
-                    <app-response [disabled]="!responseDocumentAvailable" [expanded]="step === 3" [addLayerOnMap]="addLayerOnMap" [addWMSLayerOnMap]="addWMSLayerOnMap"></app-response>
+                    <app-response [disabled]="!responseDocumentAvailable" [expanded]="step === 3" [addLayerOnMap]="addLayerOnMap"
+                        [addWMSLayerOnMap]="addWMSLayerOnMap"></app-response>
                 </mat-accordion>
             </div>
         </div>

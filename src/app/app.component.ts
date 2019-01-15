@@ -1,15 +1,16 @@
 import { Component, ViewChild } from '@angular/core';
 import { tileLayer, latLng } from 'leaflet';
 import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../environments/environment';
 import { ProcessOffering, ProcessOfferingProcess } from './model/process-offering';
 import { ExecuteResponse, ResponseDocument } from './model/execute-response';
+import { environment } from '../environments/environment';
 import * as L from 'leaflet';
-
 import * as $ from 'jquery';
 import { ConfigurationComponent } from './configuration/configuration.component';
 import { DataService } from './services/data.service';
 import { ProcessSpecificationComponent } from './process-specification/process-specification.component';
+import { HttpGetService } from './services/http-get.service';
+import { AppSettings } from './model/app-setting';
 
 declare var WpsService: any;
 declare var InputGenerator: any;
@@ -26,16 +27,17 @@ export class AppComponent {
     wpsSuccess: boolean = false;
 
     title = 'wps-ng-client';
+    private settings: AppSettings;
+
     options = {
         layers: [
             tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
         ],
-        zoom: 5,
-        center: latLng(
-            environment.startCenter.latitude,
-            environment.startCenter.longitude
-        )
+        zoom: environment.startZoom,
+        center: latLng(environment.startCenter.latitude, environment.startCenter.longitude)
     };
+    zoom: number;
+    center: L.LatLng;
     layersControl = {
         baseLayers: {
             'Open Street Map': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
@@ -95,7 +97,7 @@ export class AppComponent {
 
     responseDocument: ResponseDocument;
 
-    constructor(translate: TranslateService, private dataService: DataService) {
+    constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
         this.translationService = translate;
         this.dataService.processOffering$.subscribe(
             procOffering => {
@@ -168,13 +170,6 @@ export class AppComponent {
     }
 
     ngOnInit() {
-        this.options = {
-            layers: [
-                tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
-            ],
-            zoom: 12,
-            center: latLng(51.9487949, 7.6237527)
-        };
         this.layersControl = {
             baseLayers: {
                 'Open Street Map': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
@@ -182,25 +177,46 @@ export class AppComponent {
             overlays: {
             }
         };
-        if (environment.startZoom) {
-            this.options.zoom = environment.startZoom;
-        }
-        if (environment.startCenter
-            && environment.startCenter.latitude
-            && environment.startCenter.longitude) {
-            this.options.center = latLng(environment.startCenter.latitude, environment.startCenter.longitude);
-        }
-        if (environment.startLanguage
-            && (environment.startLanguage == "en"
-                || environment.startLanguage == "de")) {
-            this.startLanguage = environment.startLanguage;
-        } else {
-            this.startLanguage = 'en';
-        }
-        if (environment.showInfoControl != undefined) {
-            this.showInfoControl = environment.showInfoControl;
-        }
         this.dataService.setGeojsonOutputExists(false);
+        this.setAppSettings();
+    }
+
+    setAppSettings() {
+        // get AppSettings:
+        this.httpGetService.getAppSettings()
+            .subscribe((settings: AppSettings) => {
+                this.settings = settings;
+                console.log(settings);
+                // MAP SETTINGS:
+                if (settings.startZoom != undefined && settings.startZoom) {
+                    console.log("setting zoomlevel.");
+                    this.zoom = settings.startZoom;
+                }
+                if (settings.startCenter != undefined
+                    && settings.startCenter.latitude
+                    && settings.startCenter.longitude) {
+                    console.log("setting startCenter.");
+                    console.log("(" + settings.startCenter.latitude + "," + settings.startCenter.longitude + ")");
+                    this.center = latLng(settings.startCenter.latitude, settings.startCenter.longitude);
+                    console.log(this.options);
+                }
+                // LANGUAGE SETTINGS:
+                if (settings.startLanguage
+                    && (settings.startLanguage == "en"
+                        || settings.startLanguage == "de")) {
+                    console.log("setting startLanguage");
+                    this.startLanguage = settings.startLanguage;
+                } else {
+                    this.startLanguage = 'en';
+                    console.log("setting startLanguage");
+                }
+                // INFO CONTROL SETTINGS:
+                if (settings.showInfoControl != undefined) {
+                    console.log("setting showInfoControl");
+                    this.showInfoControl = settings.showInfoControl;
+                }
+
+            });
     }
 
     ngAfterViewInit() {
@@ -257,35 +273,38 @@ export class AppComponent {
         this.selectionDrawer = {
             _enabled: false
         }
-        if (this.showInfoControl) {
-            let heading = this.translationService.instant('INFO_PANEL_HEADING');
-            this.info = new L.Control({ position: 'topright' });
+        this.httpGetService.getAppSettings()
+            .subscribe((settings: AppSettings) => {
+                if (settings.showInfoControl) {
+                    let heading = this.translationService.instant('INFO_PANEL_HEADING');
+                    this.info = new L.Control({ position: 'topright' });
 
-            this.info.onAdd = function (map) {
-                this._div = L.DomUtil.create('div', 'info-panel'); // create a div with a class "info"
-                return this._div;
-            };
+                    this.info.onAdd = function (map) {
+                        this._div = L.DomUtil.create('div', 'info-panel'); // create a div with a class "info"
+                        return this._div;
+                    };
 
-            // method that we will use to update the control based on feature properties passed
-            this.info.update = function (panelTitle, in_out_putTitle, hover_tooltip, props) {
-                let content = '<h4>' + panelTitle + '</h4>';
-                if (props != undefined) {
-                    for (let key of Object.keys(props)) {
-                        if (key == 'INPUT') {
-                            content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
-                        } else if (key == 'OUTPUT') {
-                            content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
+                    // method that we will use to update the control based on feature properties passed
+                    this.info.update = function (panelTitle: string, in_out_putTitle: string, hover_tooltip: string, props: any) {
+                        let content = '<h4>' + panelTitle + '</h4>';
+                        if (props != undefined) {
+                            for (let key of Object.keys(props)) {
+                                if (key == 'INPUT') {
+                                    content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
+                                } else if (key == 'OUTPUT') {
+                                    content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
+                                } else {
+                                    content = content + "<p><b>" + key + '</b>: ' + props[key] + '</p>';
+                                }
+                            }
                         } else {
-                            content = content + "<p><b>" + key + '</b>: ' + props[key] + '</p>';
+                            content = content + "<br/ > " + hover_tooltip + "!";
                         }
-                    }
-                } else {
-                    content = content + "<br/ > " + hover_tooltip + "!";
+                        this._div.innerHTML = content;
+                    };
+                    this.info.addTo(map);
                 }
-                this._div.innerHTML = content;
-            };
-            this.info.addTo(map);
-        }
+            })
         this.LeafDefaultIcon = L.Icon.extend({
             options: {
                 iconUrl: "./assets/marker-icon-blue.png",
@@ -595,7 +614,7 @@ export class AppComponent {
         "fill": false,
         "color": "#3388ff",
         "fillOpacity": 1,
-        "weight": 1,
+        "weight": 3,
         "dashArray": '3',
         "opacity": 0.8
     }
@@ -603,7 +622,7 @@ export class AppComponent {
         "fill": false,
         "color": "#fe57a1",
         "fillOpacity": 1,
-        "weight": 1,
+        "weight": 3,
         "dashArray": '3',
         "opacity": 0.8
     }

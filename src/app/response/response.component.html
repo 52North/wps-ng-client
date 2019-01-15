@@ -100,12 +100,12 @@
                     <p class="heading">{{"OUTPUT_ENCODING" | translate}}:</p>
                     <p class="indented-right">{{output.reference.encoding}}</p>
                 </div>
-                <div class="response-div">
+                <div *ngIf="output.reference != undefined && output.reference.href != undefined" class="response-div">
                     <p class="heading">{{"OUTPUT_RESOURCE" | translate}}:</p>
-                    <div *ngIf="output.reference != undefined && output.reference.href != undefined" fxLayout="row"
+                    <div fxLayout="row"
                         class="response-div">
-                        <p fxFlex class="intented-right">{{output.reference.href}}</p>
-                        <button ngxClipboard [cbContent]="output.reference.href" mat-icon-button color="primary"
+                        <p fxFlex="85" class="resp-ref">{{output.reference.href}}</p>
+                        <button fxFlex="10" ngxClipboard [cbContent]="output.reference.href" mat-icon-button color="primary"
                             matTooltip="{{'COPY_TO_CLIPBOARD' | translate}}">
                             <mat-icon aria-label="copy to clipboard">file_copy</mat-icon>
                         </button>
