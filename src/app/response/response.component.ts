@@ -113,8 +113,6 @@ export class ResponseComponent implements OnInit {
         this.executeResponse = response.executeResponse;
         this.responseDocument = this.executeResponse.responseDocument;
         if (this.responseDocument.status != 'Failed') {
-          this.refreshing = false;
-          this.refreshInProgress = false;
           this.dataService.setResponseError({
             "textStatus": "error",
             "errorThrown": ""
@@ -142,10 +140,12 @@ export class ResponseComponent implements OnInit {
     } else {
       this.refreshing = false;
       this.refreshInProgress = false;
-      this.dataService.setResponseError({
-        "textStatus": "error",
-        "errorThrown": ""
-      });
+      if (this.responseDocument.status != 'Failed') {
+        this.dataService.setResponseError({
+          "textStatus": "error",
+          "errorThrown": ""
+        });
+      }
     }
   }
 
