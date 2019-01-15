@@ -18,7 +18,7 @@ export class HttpGetService {
   }
 
   getAppSettings() {
-    return this.http.get("../../assets/AppSettings.json");
+    return this.http.get("assets/AppSettings.json");
   }
 
 }
