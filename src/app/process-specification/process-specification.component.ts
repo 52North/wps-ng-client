@@ -447,6 +447,19 @@ export class ProcessSpecificationComponent implements OnInit {
     this.checkInputsForCompleteness("");
   }
 
+  onInputChanged(event, input) {
+      let geojsonFile = event.target.files[0];
+      let reader = new FileReader();
+      reader.onload = function (e) {
+          // handle onload
+          let lines = e.target["result"];
+          let newArr = JSON.parse(lines);
+          // add to complex payload:
+          input.enteredValue = JSON.stringify(newArr);
+      };
+      reader.readAsText(geojsonFile);
+  }
+
   onInputFormatSelectionChange(event, input) {
     if (input.mapItems != undefined) {
       this.dataService.setRemoveDrawnItems(input.mapItems);

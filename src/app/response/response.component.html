@@ -34,10 +34,10 @@
             </div>
             <mat-progress-bar style="margin-bottom: 8px;" *ngIf="responseDocument != undefined && responseDocument.percentCompleted != undefined"
                 mode="determinate" value="{{responseDocument.percentCompleted}}"></mat-progress-bar>
-            <button *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
+            <button *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded' && responseDocument.status != 'Failed'"
                 (click)="btn_onRefreshStatus()" [disabled]="refreshing" mat-raised-button color="primary">{{"REFRESH_STATUS"
                 | translate}}</button>
-            <button style="margin-left: 8px;" *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded'"
+            <button style="margin-left: 8px;" *ngIf="responseDocument.status != 'Succeeded' && responseDocument.status.info != 'wps:ProcessSucceeded' && responseDocument.status != 'Failed'"
                 (click)="btn_onRefreshStatusAutomatically()" [disabled]="refreshing" mat-raised-button color="accent">
                 <mat-icon aria-label="refresh status automatically">{{btn_autorefresh_icon}}</mat-icon>
             </button>
@@ -115,6 +115,17 @@
                     (click)="btn_fetchAndVisualize(output,executeResponse.responseDocument.jobId)" mat-raised-button color="primary">{{"FETCH_AND_VISUALIZE" |
                     translate}}</button>
                 <mat-progress-bar *ngIf="fetchingReferencedOutputs" mode="indeterminate" style="margin-top:16px;"></mat-progress-bar>
+            </div>
+        </div>
+        <div *ngIf="error != undefined" class="full-width" style="background-color: #f3f3f3; margin-top: 16px;">
+            <h4>{{"WPS_ERROR_RESPONSE" | translate}}</h4>
+            <div fxLayout="column" class="response-div" *ngIf="error.textStatus != undefined && error.textStatus.length > 0">
+                <p class="heading">{{"ERROR_TEXT_STATUS" | translate}}:</p>
+                <p class="indented-right">{{error.textStatus}}</p>
+            </div>
+            <div fxLayout="column" class="response-div" *ngIf="error.errorThrown != undefined && error.errorThrown.length > 0">
+                <p class="heading">{{"ERROR_ERROR_THROWN" | translate}}:</p>
+                <p class="indented-right">{{error.errorThrown}}</p>
             </div>
         </div>
     </div>

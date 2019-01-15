@@ -20,6 +20,10 @@ export class ResponseComponent implements OnInit {
   executeResponse: ExecuteResponse;
   responseDocument: ResponseDocument;
   webProcessingService: any;
+  error: {
+    textStatus: string;
+    errorThrown: string;
+  };
 
   executionPressed: boolean;
   responseDocumentAvailable: boolean;
@@ -60,6 +64,12 @@ export class ResponseComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.dataService.errorResponse$.subscribe(
+      error => {
+        this.error = error;
+        this.disabled = false;
+      }
+    )
   }
 
   refresh() {
@@ -67,6 +77,7 @@ export class ResponseComponent implements OnInit {
     if (this.responseDocument.version && this.responseDocument.version == "1.0.0") {
       let documentLocation = this.responseDocument.statusLocation;
       this.webProcessingService.parseStoredExecuteResponse_WPS_1_0((resp) => {
+        console.log(resp);
         this.refreshInProgress = false;
         if (resp.executeResponse) {
           this.executeResponse = resp.executeResponse;
@@ -97,16 +108,26 @@ export class ResponseComponent implements OnInit {
       }, documentLocation);
     } else {
       this.webProcessingService.getStatus_WPS_2_0((response: any) => {
+        console.log(response);
         this.refreshInProgress = false;
         this.executeResponse = response.executeResponse;
         this.responseDocument = this.executeResponse.responseDocument;
+        if (this.responseDocument.status != 'Failed') {
+          this.refreshing = false;
+          this.refreshInProgress = false;
+          this.dataService.setResponseError({
+            "textStatus": "error",
+            "errorThrown": ""
+          });
+        }
       }, jobId);
     }
   }
 
   btn_onRefreshStatusAutomatically() {
     if (this.responseDocument.status != 'Succeeded'
-      && this.responseDocument.status.info != 'wps:ProcessSucceeded') {
+      && this.responseDocument.status.info != 'wps:ProcessSucceeded'
+      && this.responseDocument.status != 'Failed') {
       if (!this.refreshing) {
         this.refreshing = true;
         this.animateRefreshing();
@@ -121,13 +142,18 @@ export class ResponseComponent implements OnInit {
     } else {
       this.refreshing = false;
       this.refreshInProgress = false;
+      this.dataService.setResponseError({
+        "textStatus": "error",
+        "errorThrown": ""
+      });
     }
   }
 
   animateRefreshing() {
     if (this.refreshing) {
       if (this.responseDocument.status != 'Succeeded'
-        && this.responseDocument.status.info != 'wps:ProcessSucceeded') {
+        && this.responseDocument.status.info != 'wps:ProcessSucceeded'
+        && this.responseDocument.status != 'Failed') {
         setTimeout(() => {
           if (this.btn_autorefresh_icon === "loop") {
             this.btn_autorefresh_icon = "cached";
@@ -139,6 +165,10 @@ export class ResponseComponent implements OnInit {
       } else {
         this.refreshing = false;
         this.refreshInProgress = false;
+        this.dataService.setResponseError({
+          "textStatus": "error",
+          "errorThrown": ""
+        });
       }
     }
   }

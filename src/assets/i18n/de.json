@@ -45,7 +45,7 @@
     "INPUT_IS_TODO_HINT": "Diese erforderliche Eingabe wurde noch nicht spezifiziert.",
     "INPUT_IS_OPTIONAL_TODO_HINT": "Diese optionale Eingabe wurde nicht spezifiziert.",
     "INPUT_IS_DONE_HINT": "Diese Eingabe wurde vollständig spezifiziert.",
-    "DRAW_A_POLYLINE_TOOLTIP": "Setze eine LineString",
+    "DRAW_A_POLYLINE_TOOLTIP": "Setze einen LineString",
     "DRAW_A_POLYGON_TOOLTIP": "Setze ein Polygon",
     "DRAW_A_RECTANGLE_TOOLTIP": "Setze ein Rechteck",
     "DRAW_A_CIRCLE_TOOLTIP": "Setze einen Kreis",
@@ -103,5 +103,9 @@
     "REFRESH_STATUS": "aktualisieren",
     "GET_RESULT": "Hole Ergebnis",
     "COPY_TO_CLIPBOARD": "Kopieren",
-    "FETCH_AND_VISUALIZE": "Hole & visualisiere Ausgabe"
+    "FETCH_AND_VISUALIZE": "Hole & visualisiere Ausgabe",
+
+    "WPS_ERROR_RESPONSE": "Fehlerbericht",
+    "ERROR_ERROR_THROWN": "Fehler",
+    "ERROR_TEXT_STATUS": "Fehlerbeschreibung"
 }

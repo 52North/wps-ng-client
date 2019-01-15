@@ -90,6 +90,7 @@ export class ExecutionComponent implements OnInit {
   }
 
   btn_onExecute() {
+    this.dataService.setResponseError(undefined);
     this.dataService.setCurrentInput(undefined);
     this.disableAllDrawer();
     this.wpsExecuteLoading = true;
@@ -223,45 +224,52 @@ export class ExecutionComponent implements OnInit {
     }
 
     // execute the request
-    if (this.processOffering.selectedExecutionMode.split("-")[0] == 'sync') {
-      this.webProcessingService.execute(
-        (callback) => {
-          if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
-            this.wpsExecuteLoading = false;
-            this.dataService.setWpsExecuteLoading(false);
-          } else {
-            console.log(callback);
-            this.executeResponse = callback.executeResponse;
-            this.dataService.setExecuteResponse(this.executeResponse);
-            this.responseDocumentAvailable = true;
-            this.wpsExecuteLoading = false;
-            this.dataService.setWpsExecuteLoading(false);
-            let jobId = this.executeResponse.responseDocument.jobId;
-            // add inputs as layers:
-            for (let input of this.processOffering.process.inputs) {
-              if (input.selectedFormat && input.selectedFormat != undefined) {
-                let selectedFormat = input.selectedFormat;
-                if (selectedFormat.mimeType
-                  && selectedFormat.mimeType != undefined
-                  && selectedFormat.mimeType == "application/vnd.geo+json"
-                  && input.selectedInputType == 'option4') {
-                  let geojsonInput = JSON.parse(input.enteredValue);
-                  for (let feature of geojsonInput.features) {
-                    feature.properties['INPUT'] = input.identifier;
-                  }
-                  this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                  this.dataService.addLayerOnMap(input.mapItems);
-                } else if (input.boundingBoxData &&
-                  input.boundingBoxData != undefined &&
-                  input.selectedCRS == 'EPSG:4326') {
-                  // bounding box input:
-                  let geojsonInput = this.bboxToGeojson(input, true);
-                  this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                  this.dataService.addLayerOnMap(input.mapItems);
+    this.webProcessingService.execute(
+      (callback) => {
+        console.log(callback);
+        if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
+          this.wpsExecuteLoading = false;
+          this.dataService.setWpsExecuteLoading(false);
+          let error = {
+            "textStatus": callback.textStatus,
+            "errorThrown": callback.errorThrown
+          }
+          this.dataService.setResponseError(error);
+          this.dataService.setExpandedPanel(3);
+        } else {
+          console.log(callback);
+          this.executeResponse = callback.executeResponse;
+          this.dataService.setExecuteResponse(this.executeResponse);
+          this.responseDocumentAvailable = true;
+          this.wpsExecuteLoading = false;
+          this.dataService.setWpsExecuteLoading(false);
+          let jobId = this.executeResponse.responseDocument.jobId;
+          // add inputs as layers:
+          for (let input of this.processOffering.process.inputs) {
+            if (input.selectedFormat && input.selectedFormat != undefined) {
+              let selectedFormat = input.selectedFormat;
+              if (selectedFormat.mimeType
+                && selectedFormat.mimeType != undefined
+                && selectedFormat.mimeType == "application/vnd.geo+json"
+                && input.selectedInputType == 'option4') {
+                let geojsonInput = JSON.parse(input.enteredValue);
+                for (let feature of geojsonInput.features) {
+                  feature.properties['INPUT'] = input.identifier;
                 }
+                this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
+                this.dataService.addLayerOnMap(input.mapItems);
+              } else if (input.boundingBoxData &&
+                input.boundingBoxData != undefined &&
+                input.selectedCRS == 'EPSG:4326') {
+                // bounding box input:
+                let geojsonInput = this.bboxToGeojson(input, true);
+                this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
+                this.dataService.addLayerOnMap(input.mapItems);
               }
             }
-            // add outputs as layers:
+          }
+          // add outputs as layers:
+          if (this.executeResponse.responseDocument.outputs != undefined) {
             for (let output of this.executeResponse.responseDocument.outputs) {
               if (output.reference == undefined && output.data.complexData && output.data.complexData != undefined) {
                 let complexData = output.data.complexData;
@@ -307,115 +315,17 @@ export class ExecutionComponent implements OnInit {
                 }
               }
             }
-            this.dataService.setExpandedPanel(3);
           }
-        },
-        this.selectedProcessIdentifier,
-        this.processOffering.selectedResponseFormat,
-        this.processOffering.selectedExecutionMode.split("-")[0],
-        false, // lineage
-        generatedInputs,
-        generatedOutputs
-      );
-    } else {
-      this.webProcessingService.execute(
-        (callback) => {
-          if (callback.textStatus && callback.textStatus != undefined && callback.textStatus == 'error') {
-            this.wpsExecuteLoading = false;
-            this.dataService.setWpsExecuteLoading(false);
-          } else {
-            this.executeResponse = callback.executeResponse;
-            this.dataService.setExecuteResponse(this.executeResponse);
-            let responseDocument = this.executeResponse.responseDocument;
-            this.responseDocumentAvailable = true;
-            let jobId = this.executeResponse.responseDocument.jobId;
-            this.wpsExecuteLoading = false;
-            this.dataService.setWpsExecuteLoading(false);
-            // add inputs as layers:
-            for (let input of this.processOffering.process.inputs) {
-              if (input.selectedFormat && input.selectedFormat != undefined) {
-                let selectedFormat = input.selectedFormat;
-                if (selectedFormat.mimeType
-                  && selectedFormat.mimeType != undefined
-                  && selectedFormat.mimeType == "application/vnd.geo+json"
-                  && input.selectedInputType == 'option4') {
-                  let geojsonInput = JSON.parse(input.enteredValue);
-                  for (let feature of geojsonInput.features) {
-                    feature.properties['INPUT'] = input.identifier;
-                  }
-                  this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                  this.dataService.addLayerOnMap(input.mapItems);
-                } else if (input.boundingBoxData &&
-                  input.boundingBoxData != undefined &&
-                  input.selectedCRS == 'EPSG:4326') {
-                  // bounding box input:
-                  let geojsonInput = this.bboxToGeojson(input, true);
-                  this.addLayerOnMap(input.identifier, geojsonInput, true, jobId);
-                  this.dataService.addLayerOnMap(input.mapItems);
-                }
-              }
-            }
-            // this.map.removeLayer(this.allDrawnItems);
-            // add outputs as layers:
-            if (this.executeResponse.responseDocument.outputs != undefined) {
-              for (let output of this.executeResponse.responseDocument.outputs) {
-                if (output.reference == undefined && output.reference == undefined && output.data.complexData && output.data.complexData != undefined) {
-                  let complexData = output.data.complexData;
-                  if (complexData.mimeType
-                    && complexData.mimeType != undefined
-                    && complexData.mimeType == 'application/vnd.geo+json') {
-                    let geojsonOutput = JSON.parse(complexData.value);
-                    for (let feature of geojsonOutput.features) {
-                      feature.properties['OUTPUT'] = output.identifier;
-                    }
-                    this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
-                  } else if (output.boundingBoxData &&
-                    output.boundingBoxData != undefined &&
-                    output.selectedCRS == 'EPSG:4326') {
-                    // bounding box input:
-                    let geojsonInput = this.bboxToGeojson(output, false);
-                    this.addLayerOnMap(output.identifier, geojsonInput, true, jobId);
-                    this.dataService.addLayerOnMap(output.mapItems);
-                  } else if (complexData.mimeType
-                    && complexData.mimeType != undefined
-                    && complexData.mimeType == 'application/WMS') {
-                    // get wms URL:
-                    let wmsTargetUrl = complexData.value;
-                    wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
-                    wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
-                    // encode URL:
-                    let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
-                    let resultsArray = regex.exec(wmsTargetUrl);
-                    let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
-                    let wmsBaseUrl = wmsTargetUrl.split("?")[0];
-                    wmsBaseUrl = wmsBaseUrl + '?';
-                    let wmsLayer = {
-                      name: 'Output: ' + output.identifier,
-                      type: 'wms',
-                      visible: true,
-                      url: wmsBaseUrl,
-                      layerParams: {
-                        layers: layerNamesString,
-                        format: 'image/png',
-                        transparent: true
-                      }
-                    }
-                    this.addWMSLayerOnMap(wmsBaseUrl, layerNamesString);
-                  }
-                }
-              }
-            }
-            this.dataService.setExpandedPanel(3);
-          }
-        },
-        this.selectedProcessIdentifier,
-        this.processOffering.selectedResponseFormat,
-        this.processOffering.selectedExecutionMode.split("-")[0],
-        false, // lineage
-        generatedInputs,
-        generatedOutputs
-      );
-    }
+          this.dataService.setExpandedPanel(3);
+        }
+      },
+      this.selectedProcessIdentifier,
+      this.processOffering.selectedResponseFormat,
+      this.processOffering.selectedExecutionMode.split("-")[0],
+      false, // lineage
+      generatedInputs,
+      generatedOutputs
+    );
   }
 
   onResponseFormatSelected() {
