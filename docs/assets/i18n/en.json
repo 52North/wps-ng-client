@@ -103,5 +103,9 @@
     "REFRESH_STATUS": "refresh",
     "GET_RESULT": "get Result",
     "COPY_TO_CLIPBOARD": "Copy to clipboard",
-    "FETCH_AND_VISUALIZE": "fetch & visualize output"
+    "FETCH_AND_VISUALIZE": "fetch & visualize output",
+
+    "WPS_ERROR_RESPONSE": "Error report",
+    "ERROR_ERROR_THROWN": "Error",
+    "ERROR_TEXT_STATUS": "Error description"
 }
