@@ -3,6 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DataService } from '../services/data.service';
 import { ResponseDocument, ExecuteResponse } from '../model/execute-response';
 import { HttpGetService } from '../services/http-get.service';
+import { AppSettings } from '../model/app-setting';
 
 declare var WpsService: any;
 
@@ -25,6 +26,7 @@ export class ResponseComponent implements OnInit {
     errorThrown: string;
   };
 
+  appSettings: AppSettings = undefined;
   executionPressed: boolean;
   responseDocumentAvailable: boolean;
   wpsExecuteLoading: boolean = false;
@@ -32,6 +34,8 @@ export class ResponseComponent implements OnInit {
   btn_autorefresh_icon: string = "loop";
   refreshing: boolean = false;
   fetchingReferencedOutputs: boolean = false;
+  btn_refresh_color: string = "primary";
+  refreshInterval: number = 5000;
 
   constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
     this.dataService.webProcessingService$.subscribe(
@@ -70,6 +74,15 @@ export class ResponseComponent implements OnInit {
         this.disabled = false;
       }
     )
+    this.httpGetService.getAppSettings()
+      .subscribe((settings: AppSettings) => {
+        this.appSettings = settings;
+        if (this.appSettings.asyncAutoRefreshInterval != undefined && typeof this.appSettings.asyncAutoRefreshInterval == 'number') {
+          this.refreshInterval = this.appSettings.asyncAutoRefreshInterval;
+        } else {
+          this.refreshInterval = 5000;
+        }
+      })
   }
 
   refresh() {
@@ -122,24 +135,27 @@ export class ResponseComponent implements OnInit {
     }
   }
 
-  btn_onRefreshStatusAutomatically() {
+  refreshingAutomatically() {
     if (this.responseDocument.status != 'Succeeded'
-      && this.responseDocument.status.info != 'wps:ProcessSucceeded'
+      && (this.responseDocument.status != undefined && this.responseDocument.status.info != 'wps:ProcessSucceeded')
       && this.responseDocument.status != 'Failed') {
       if (!this.refreshing) {
         this.refreshing = true;
         this.animateRefreshing();
       }
+      if (this.refreshing) {
+        this.refresh();
+      }
       setTimeout(() => {
         if (this.refreshing) {
           this.refreshInProgress = true;
-          this.refresh();
-          this.btn_onRefreshStatusAutomatically();
+          this.refreshingAutomatically();
         }
-      }, 5000);
+      }, this.refreshInterval);
     } else {
       this.refreshing = false;
       this.refreshInProgress = false;
+      this.btn_refresh_color = "primary";
       if (this.responseDocument.status == 'Failed') {
         this.dataService.setResponseError({
           "textStatus": "error",
@@ -151,10 +167,22 @@ export class ResponseComponent implements OnInit {
     }
   }
 
+  btn_onRefreshStatusAutomatically() {
+    if (this.refreshing) {
+      this.refreshing = !this.refreshing;
+      console.log("refreshing canceled.");
+      this.btn_refresh_color = "primary";
+    } else {
+      this.btn_refresh_color = "accent";
+      this.refreshingAutomatically();
+      console.log("refreshing started.");
+    }
+  }
+
   animateRefreshing() {
     if (this.refreshing) {
       if (this.responseDocument.status != 'Succeeded'
-        && this.responseDocument.status.info != 'wps:ProcessSucceeded'
+        && (this.responseDocument.status != undefined && this.responseDocument.status.info != 'wps:ProcessSucceeded')
         && this.responseDocument.status != 'Failed') {
         setTimeout(() => {
           if (this.btn_autorefresh_icon === "loop") {

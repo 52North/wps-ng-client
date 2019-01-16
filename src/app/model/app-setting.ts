@@ -22,6 +22,7 @@ export class AppSettings {
   
     defaultExecutionMode: string;
     defaultResponseFormat: string;
+    asyncAutoRefreshInterval: number;
   
     showInfoControl: boolean;
 }
