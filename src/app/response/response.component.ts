@@ -55,9 +55,13 @@ export class ResponseComponent implements OnInit {
     this.dataService.executeResponse$.subscribe(
       executeResponse => {
         this.executeResponse = executeResponse;
-        this.responseDocumentAvailable = true;
         this.executionPressed = true;
-        this.responseDocument = this.executeResponse.responseDocument;
+        if (this.executeResponse != undefined) {
+          this.responseDocumentAvailable = true;
+          this.responseDocument = this.executeResponse.responseDocument;
+        } else {
+          this.responseDocument = undefined;
+        }
       }
     )
     this.dataService.wpsExecuteLoading$.subscribe(
@@ -211,6 +215,12 @@ export class ResponseComponent implements OnInit {
     this.refresh();
   }
 
+  unCDATAOutput(outputvalue) {
+    let trimmedStart = outputvalue.replace("<![CDATA[", "");
+    let trimmedEnd = trimmedStart.replace("]]>", "");
+    return trimmedEnd;
+  }
+
   btn_onGetResult() {
     let jobId = this.responseDocument.jobId;
     this.webProcessingService.getResult_WPS_2_0((resp) => {
@@ -224,6 +234,9 @@ export class ResponseComponent implements OnInit {
           if (complexData.mimeType
             && complexData.mimeType != undefined
             && complexData.mimeType == 'application/vnd.geo+json') {
+            if (complexData.value.startsWith('<![CDATA[')) {
+              complexData.value = this.unCDATAOutput(complexData.value);
+            }
             let geojsonOutput = JSON.parse(complexData.value);
             for (let feature of geojsonOutput.features) {
               feature.properties['OUTPUT'] = output.identifier;
@@ -233,9 +246,10 @@ export class ResponseComponent implements OnInit {
             && complexData.mimeType != undefined
             && complexData.mimeType == 'application/WMS') {
             // get wms URL:
+            if (complexData.value.startsWith('<![CDATA[')) {
+              complexData.value = this.unCDATAOutput(complexData.value);
+            }
             let wmsTargetUrl = complexData.value;
-            wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
-            wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
             // encode URL:
             let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
             let resultsArray = regex.exec(wmsTargetUrl);

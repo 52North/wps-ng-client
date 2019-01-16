@@ -92,6 +92,8 @@ export class ExecutionComponent implements OnInit {
   btn_onExecute() {
     this.dataService.setResponseError(undefined);
     this.dataService.setCurrentInput(undefined);
+    this.dataService.setExecuteResponse(undefined);
+    this.dataService.setResponseDocument(undefined);
     this.disableAllDrawer();
     this.wpsExecuteLoading = true;
     this.dataService.setWpsExecuteLoading(true);
@@ -274,27 +276,26 @@ export class ExecutionComponent implements OnInit {
               for (let output of this.executeResponse.responseDocument.outputs) {
                 if (output.reference == undefined && output.data.complexData && output.data.complexData != undefined) {
                   let complexData = output.data.complexData;
+                  console.log(complexData);
                   if (complexData.mimeType
                     && complexData.mimeType != undefined
                     && complexData.mimeType == 'application/vnd.geo+json') {
+                    if (complexData.value.startsWith('<![CDATA[')) {
+                      complexData.value = this.unCDATAOutput(complexData.value);
+                    }
                     let geojsonOutput = JSON.parse(complexData.value);
                     for (let feature of geojsonOutput.features) {
                       feature.properties['OUTPUT'] = output.identifier;
                     }
                     this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
-                  } else if (output.boundingBoxData &&
-                    output.boundingBoxData != undefined &&
-                    output.selectedCRS == 'EPSG:4326') {
-                    // bounding box input:
-                    let geojsonInput = this.bboxToGeojson(output, false);
-                    this.addLayerOnMap(output.identifier, geojsonInput, true, jobId);
                   } else if (complexData.mimeType
                     && complexData.mimeType != undefined
                     && complexData.mimeType == 'application/WMS') {
                     // get wms URL:
+                    if (complexData.value.startsWith('<![CDATA[')) {
+                      complexData.value = this.unCDATAOutput(complexData.value);
+                    }
                     let wmsTargetUrl = complexData.value;
-                    wmsTargetUrl = wmsTargetUrl.replace("<![CDATA[", "");
-                    wmsTargetUrl = wmsTargetUrl.replace("]]>", "");
                     // encode URL:
                     let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
                     let resultsArray = regex.exec(wmsTargetUrl);
@@ -314,6 +315,12 @@ export class ExecutionComponent implements OnInit {
                     }
                     this.addWMSLayerOnMap(wmsBaseUrl, layerNamesString);
                   }
+                } else if (output.boundingBoxData &&
+                  output.boundingBoxData != undefined &&
+                  output.selectedCRS == 'EPSG:4326') {
+                  // bounding box input:
+                  let geojsonInput = this.bboxToGeojson(output, false);
+                  this.addLayerOnMap(output.identifier, geojsonInput, true, jobId);
                 }
               }
             }
@@ -336,6 +343,12 @@ export class ExecutionComponent implements OnInit {
       });
       this.dataService.setExpandedPanel(3);
     }
+  }
+
+  unCDATAOutput(outputvalue) {
+    let trimmedStart = outputvalue.replace("<![CDATA[", "");
+    let trimmedEnd = trimmedStart.replace("]]>", "");
+    return trimmedEnd;
   }
 
   onResponseFormatSelected() {

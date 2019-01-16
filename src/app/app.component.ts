@@ -159,14 +159,18 @@ export class AppComponent {
 
             }
         )
-        this.dataService.executeResponse$.subscribe(
-            executeResponse => {
-                this.executeResponse = executeResponse;
-                this.responseDocumentAvailable = true;
-                this.executionPressed = true;
-                this.responseDocument = this.executeResponse.responseDocument;
-            }
-        )
+        // this.dataService.executeResponse$.subscribe(
+        //     executeResponse => {
+        //         this.executeResponse = executeResponse;
+        //         this.executionPressed = true;
+        //         if (this.executeResponse != undefined) {
+        //           this.responseDocumentAvailable = true;
+        //           this.responseDocument = this.executeResponse.responseDocument;
+        //         } else {
+        //           this.responseDocument = undefined;
+        //         }
+        //     }
+        // )
     }
 
     ngOnInit() {
@@ -730,7 +734,7 @@ export class AppComponent {
                                     this.currentInput.mapItems = L.geoJSON(
                                         inputFeatureCollection, {
                                         });
-                                    // visual unselect: 
+                                    // visual unselect:
                                     if (feature.geometry.type == 'Point') {
                                         layer.setIcon(this.outputMarkerIcon);
                                     } else if (feature.geometry.type == 'LineString') {
