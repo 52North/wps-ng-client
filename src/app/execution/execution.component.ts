@@ -316,7 +316,7 @@ export class ExecutionComponent implements OnInit {
                         transparent: true
                       }
                     }
-                    this.addWMSLayerOnMap(wmsBaseUrl, layerNamesString);
+                    this.addWMSLayerOnMap(wmsBaseUrl, layerNamesString, 'Output: ' + output.identifier, jobId);
                   }
                 } else if (output.boundingBoxData &&
                   output.boundingBoxData != undefined &&

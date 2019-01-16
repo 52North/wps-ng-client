@@ -267,7 +267,7 @@ export class ResponseComponent implements OnInit {
                 transparent: true
               }
             }
-            this.addWMSLayerOnMap(wmsBaseUrl, layerNamesString);
+            this.addWMSLayerOnMap(wmsBaseUrl, layerNamesString, 'Output: ' + output.identifier, jobId);
           }
         }
       }

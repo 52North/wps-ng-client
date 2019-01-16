@@ -637,7 +637,7 @@ export class AppComponent {
         "opacity": 0.65
     };
 
-    addWMSLayerOnMap = (baseUrl: string, layersNames: string) => {
+    addWMSLayerOnMap = (baseUrl: string, layersNames: string, layerName: string, jobId: string) => {
         let addedWMSLayer = L.tileLayer.wms(
             baseUrl,
             {
@@ -646,6 +646,7 @@ export class AppComponent {
                 transparent: true
             }
         ).addTo(this.map);
+        this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + layerName] = addedWMSLayer;
     }
 
     addLayerOnMap = (name, feature, isInput, jobId) => {
