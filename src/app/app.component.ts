@@ -290,6 +290,7 @@ export class AppComponent {
         this.LeafDefaultIcon = L.Icon.extend({
             options: {
                 iconUrl: "./assets/marker-icon-blue.png",
+                shadowUrl: "./assets/marker-shadow.png",
                 iconSize: [25, 41],
                 shadowSize: [41, 41],
                 iconAnchor: [12, 41],
@@ -300,6 +301,7 @@ export class AppComponent {
         this.LeafHighlightIcon = L.Icon.extend({
             options: {
                 iconUrl: "./assets/marker-icon-blue.png",
+                shadowUrl: "./assets/marker-shadow.png",
                 iconSize: [31, 47],
                 shadowSize: [47, 47],
                 iconAnchor: [15, 47],
@@ -308,16 +310,20 @@ export class AppComponent {
             }
         });
         this.inputMarkerIcon = new this.LeafDefaultIcon({
-            iconUrl: "./assets/marker-icon-blue.png"
+            iconUrl: "./assets/marker-icon-blue.png",
+            shadowUrl: "./assets/marker-shadow.png"
         });
         this.inputMarkerHighlighIcon = new this.LeafHighlightIcon({
-            iconUrl: "./assets/marker-icon-blue.png"
+            iconUrl: "./assets/marker-icon-blue.png",
+            shadowUrl: "./assets/marker-shadow.png"
         });
         this.outputMarkerIcon = new this.LeafDefaultIcon({
-            iconUrl: "./assets/marker-icon-red.png"
+            iconUrl: "./assets/marker-icon-red.png",
+            shadowUrl: "./assets/marker-shadow.png"
         });
         this.outputMarkerHighlighIcon = new this.LeafHighlightIcon({
-            iconUrl: "./assets/marker-icon-red.png"
+            iconUrl: "./assets/marker-icon-red.png",
+            shadowUrl: "./assets/marker-shadow.png"
         });
     };
 
