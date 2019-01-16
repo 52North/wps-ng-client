@@ -76,6 +76,7 @@
     "WPS_EXECUTE_DONE_TOOLTIP": "All required execute parameters are specified.",
     "SELECT_EXECUTION_MODE": "Execution mode",
     "SELECT_EXECUTION_MODE_HINT": "select an execution mode..",
+    "WPS_EXECUTE_DISMISS_NOT_SUPPORTED": "'dismiss' is (currently) not supported.",
     "SELECT_RESPONSE_FORMAT": "Response format",
     "EXECUTE": "EXECUTE",
     

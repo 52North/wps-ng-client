@@ -16,7 +16,8 @@
       <mat-select class='selectOptionSmall' (selectionChange)="onExecutionModeSelected($event)" [(value)]="processOffering.selectedExecutionMode"
         [ngClass]="selected">
         <mat-option value='SELECT_EXECUTION_MODE_HINT'>{{ "SELECT_EXECUTION_MODE_HINT" | translate }}</mat-option>
-        <mat-option *ngFor="let executionMode of processOffering.jobControlOptions" [value]="executionMode">{{executionMode}}</mat-option>
+        <mat-option [disabled]="executionMode == 'dismiss'" 
+        [matTooltip]="executionMode == 'dismiss'? translationService.instant('WPS_EXECUTE_DISMISS_NOT_SUPPORTED') : null" *ngFor="let executionMode of processOffering.jobControlOptions" [value]="executionMode">{{executionMode}}</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field fxFlex>

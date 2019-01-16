@@ -2,7 +2,6 @@ import { Component, ViewChild } from '@angular/core';
 import { tileLayer, latLng } from 'leaflet';
 import { TranslateService } from '@ngx-translate/core';
 import { ProcessOffering, ProcessOfferingProcess } from './model/process-offering';
-import { ExecuteResponse, ResponseDocument } from './model/execute-response';
 import { environment } from '../environments/environment';
 import * as L from 'leaflet';
 import * as $ from 'jquery';
@@ -48,7 +47,6 @@ export class AppComponent {
     startLanguage: string = 'de';
     translationService: TranslateService;
     webProcessingService: any;
-    selectedWpsServiceVersion: string;
     panelOpenState = false;
     selectedWpsServiceUrl: string;
     wpsGetCapLoading: boolean = false;
@@ -58,15 +56,12 @@ export class AppComponent {
     selectedProcess: ProcessOfferingProcess;
     processOffering: ProcessOffering = undefined;
     selectedProcessIdentifier: string;
-    executeResponse: ExecuteResponse;
-    responseDocumentAvailable: boolean = false;
     processInputs = {};
     polylineDrawer: any;
     polygonDrawer: any;
     rectangleDrawer: any;
     circleDrawer: any;
     markerDrawer: any;
-    executionPressed: boolean = false;
     selectionDrawer: any;
     allDrawnItems: any;
     processInputsDone: boolean;
@@ -94,8 +89,7 @@ export class AppComponent {
     LeafDefaultIcon: any;
     LeafHighlightIcon: any;
     step: number = 0;
-
-    responseDocument: ResponseDocument;
+    responseDocumentAvailable: boolean = false;
 
     constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
         this.translationService = translate;
@@ -112,11 +106,6 @@ export class AppComponent {
         this.dataService.webProcessingService$.subscribe(
             wps => {
                 this.webProcessingService = wps;
-            }
-        )
-        this.dataService.wpsVersion$.subscribe(
-            wpsVersion => {
-                this.selectedWpsServiceVersion = wpsVersion;
             }
         )
         this.dataService.processIdentifier$.subscribe(
@@ -159,18 +148,11 @@ export class AppComponent {
 
             }
         )
-        // this.dataService.executeResponse$.subscribe(
-        //     executeResponse => {
-        //         this.executeResponse = executeResponse;
-        //         this.executionPressed = true;
-        //         if (this.executeResponse != undefined) {
-        //           this.responseDocumentAvailable = true;
-        //           this.responseDocument = this.executeResponse.responseDocument;
-        //         } else {
-        //           this.responseDocument = undefined;
-        //         }
-        //     }
-        // )
+        this.dataService.executeResponse$.subscribe(
+            resp => {
+                this.responseDocumentAvailable = true;
+            }
+        )
     }
 
     ngOnInit() {
@@ -244,10 +226,6 @@ export class AppComponent {
 
     webProcessingServiceChanged($event) {
         this.webProcessingService = $event;
-    }
-
-    serviceVersionChanged($event) {
-        this.selectedWpsServiceVersion = $event;
     }
 
     setStep = (step: number) => {

@@ -24,6 +24,7 @@ export class ExecutionComponent implements OnInit {
   @Input() addWMSLayerOnMap;
 
   processInputsDone: boolean;
+  translationService: TranslateService;
   processOffering: ProcessOffering = undefined;
   wpsGetCapSuccess: boolean;
   wpsGetCapFail: boolean;
@@ -40,6 +41,7 @@ export class ExecutionComponent implements OnInit {
   subscription: Subscription;
 
   constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
+    this.translationService = translate;
     this.dataService.webProcessingService$.subscribe(
       wps => {
         this.webProcessingService = wps;
@@ -48,6 +50,7 @@ export class ExecutionComponent implements OnInit {
     this.dataService.processOffering$.subscribe(
       procOffering => {
         this.processOffering = procOffering;
+        console.log(this.processOffering);
       }
     );
     this.subscription = dataService.expandedPanel$.subscribe(
