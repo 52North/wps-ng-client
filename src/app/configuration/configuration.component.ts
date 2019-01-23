@@ -95,7 +95,6 @@ export class ConfigurationComponent implements OnInit {
       });
   }
 
-
   wpsServiceVersionChange = (event) => {
     this.wpsGetCapSuccess = false;
     this.wpsGetCapFail = false;
@@ -113,6 +112,7 @@ export class ConfigurationComponent implements OnInit {
     });
     this.dataService.setWebProcessingService(this.wps);
     this.wps.getCapabilities_GET((callback) => {
+      console.log(callback);
       this.wpsGetCapLoading = false;
       if (callback.textStatus && callback.textStatus == "error") {
         this.wpsGetCapSuccess = false;

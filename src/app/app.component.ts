@@ -285,6 +285,7 @@ export class AppComponent {
                         this._div.innerHTML = content;
                     };
                     this.info.addTo(map);
+                    this.updateInfoControl(undefined, true);
                 }
             })
         this.LeafDefaultIcon = L.Icon.extend({
@@ -650,6 +651,10 @@ export class AppComponent {
     }
 
     addLayerOnMap = (name, feature, isInput, jobId) => {
+        if (this.showInfoControl) {
+            console.log(this.info);
+            this.info._div.style['display'] = 'block';
+        }
         let layerToAdd = L.geoJSON(
             feature, {
                 style: feature.features[0].geometry.type == 'LineString' ?

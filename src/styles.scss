@@ -15,7 +15,21 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 .leaflet-draw-toolbar{
     display: none;
 }
+.leaflet-popup-content {
+    max-height: 300px;
+    overflow-y: scroll;
+}
+.leaflet-popup-content-wrapper {
+    width: 100% !important;
+}
+.mat-tooltip {
+    font-size: 14px !important;
+}
+.cdk-overlay-container {
+    z-index: 10000;
+}
 .info-panel {
+    display: none;
     padding: 6px 8px;
     font: 14px/16px Arial, Helvetica, sans-serif;
     background: white;
@@ -44,14 +58,4 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 /*    text-align: left;
     position: absolute;
     left: 0px;*/
-}
-.leaflet-popup-content {
-    max-height: 300px;
-    overflow-y: scroll;
-}
-.leaflet-popup-content-wrapper {
-    width: 100% !important;
-}
-.mat-tooltip {
-    font-size: 14px !important;
 }

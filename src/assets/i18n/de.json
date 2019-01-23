@@ -78,6 +78,7 @@
     "SELECT_EXECUTION_MODE_HINT": "Wähle eine Ausführungsart..",
     "WPS_EXECUTE_DISMISS_NOT_SUPPORTED": "'dismiss' wird (momentan) nicht unterstützt.",
     "SELECT_RESPONSE_FORMAT": "Antwortformat",
+    "WPS_EXECUTE_RAW_NOT_SUPPORTED": "'raw' wird (momentan) nicht unterstützt.",
     "EXECUTE": "AUSFÜHREN",
     
     "WPS_RESPONSE_DOCUMENT": "ResponseDocument",
@@ -85,6 +86,7 @@
     "PROCESS_ID": "Prozess Identifier",
     "PROCESS_JOB_ID": "Prozess JobId",
     "PROCESS_EXPIRE_DATE": "Verfallsdatum",
+    "PROCESS_RAW_OUTPUT": "Rohantwort",
     "OUTPUT_IDENTIFIER": "Identifikationskennung",
     "OUTPUT_MIMETYPE": "MimeType",
     "OUTPUT_SCHEMA": "Schema",
