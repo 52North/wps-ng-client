@@ -55,8 +55,12 @@
                 <p class="heading">{{"PROCESS_EXPIRE_DATE" | translate}}:</p>
                 <p class="indented-right">{{executeResponse.responseDocument.expirationDate}}</p>
             </div>
+            <div fxLayout="column" class="response-div" *ngIf="executeResponse.type == 'rawOutput' && executeResponse.responseDocument != undefined">
+                <p class="heading">{{"PROCESS_RAW_OUTPUT" | translate}}:</p>
+                <p class="indented-right"  style="overflow-x: scroll;">{{executeResponse.responseDocument}}</p>
+            </div>
             <mat-divider></mat-divider>
-            <h4>{{"OUTPUTS" | translate}}</h4>
+            <h4 *ngIf="executeResponse.type != 'rawOutput'">{{"OUTPUTS" | translate}}</h4>
             <div *ngFor="let output of executeResponse.responseDocument.outputs">
                 <div fxLayout="column" class="response-div">
                     <p class="heading">{{"OUTPUT_IDENTIFIER" | translate}}:</p>
