@@ -385,6 +385,9 @@ export class AppComponent {
 
     selectedOutputLayers: any[] = [];
     isSelectedForInput(layer) {
+        console.log("selectedOutputLayers includes ");
+        console.log(layer);
+        console.log("? -->" + this.selectedOutputLayers.includes(layer));
         return this.selectedOutputLayers.includes(layer);
     }
 
@@ -512,11 +515,13 @@ export class AppComponent {
     };
 
     removeFeatureFromCollection(feature, featureCollection) {
+        console.log(featureCollection.features);
         let geometryType = feature.geometry.type;
         featureCollection.features.forEach((currentFeature, index) => {
             if (currentFeature.geometry.type == geometryType) {
                 if (this.equalGeometries(feature.geometry.coordinates, currentFeature.geometry.coordinates)) {
                     featureCollection.features.splice(index, 1);
+                    console.log(featureCollection.features);
                     return featureCollection;
                 }
             }
@@ -525,47 +530,48 @@ export class AppComponent {
     }
 
     equalGeometries(coordsA, coordsB) {
-        if (Array.isArray(coordsA) && Array.isArray(coordsB)) {
-            if (coordsA.length == coordsB.length) {
-                let firstA = coordsA[0];
-                let firstB = coordsB[0];
-                let startEquals: boolean = true;
-                if (Array.isArray(firstA) && Array.isArray(firstB)) {
-                    let bool = this.equalGeometries(firstA, firstB);
-                    if (!bool) {
-                        return false;
-                    }
-                } else if (!Array.isArray(firstA) && !Array.isArray(firstB)) {
-                    let bool = firstA == firstB;
-                    if (!bool) {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-                let restA = JSON.parse(JSON.stringify(coordsA));
-                let restB = JSON.parse(JSON.stringify(coordsB));
-                if (coordsA.length > 1 && coordsB.length > 1) {
-                    restA.splice(0, 1);
-                    restB.splice(0, 1);
-                    return this.equalGeometries(restA, restB);
-                } else {
-                    if (coordsA[0] == coordsB[0]) {
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
+        debugger;
+        if (this.isPoint(coordsA) && this.isPoint(coordsB)) {
+            if (this.equalPoints(coordsA, coordsB)) {
+                return true;
             } else {
                 return false;
             }
-        }
-        else if (!Array.isArray(coordsA) && !Array.isArray(coordsB)) {
-            if (coordsA == coordsB) {
-                return true;
+        } else if (!this.isPoint(coordsA) && !this.isPoint(coordsB)) {
+            if (coordsA.length != coordsB.length) {
+                return false;
             }
+            if (coordsA.length == 0 && coordsB.length == 0) {
+                return true;
+            } else if ((coordsA.length == 1 && coordsB.length == 1) &&
+                !this.isPoint(coordsA[0] && !this.isPoint(coordsB[0]))) {
+                return this.equalGeometries(coordsA[0], coordsB[0]);
+            } else {
+                let restA = JSON.parse(JSON.stringify(coordsA));
+                let restB = JSON.parse(JSON.stringify(coordsB));
+                restA.splice(0, 1);
+                restB.splice(0, 1);
+                return this.equalGeometries(coordsA[0], coordsB[0]) &&
+                    this.equalGeometries(restA, restB);
+            }
+        } else {
+            return false;
+        }
+    }
+
+    isPoint(geom) {
+        if (Array.isArray(geom) &&
+            geom.length == 2 &&
+            !Array.isArray(geom[0]) &&
+            !Array.isArray(geom[1])) {
+            return true;
         }
         return false;
+    }
+
+    equalPoints(pointA, pointB) {
+        return (pointA[0] == pointB[0] &&
+            pointA[1] == pointB[1]);
     }
 
     inputDefaultStyle = {
