@@ -28,22 +28,22 @@ export class AppComponent {
     title = 'wps-ng-client';
     private settings: AppSettings;
 
+    baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' });
     options = {
-        layers: [
-            tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
-        ],
         zoom: environment.startZoom,
-        center: latLng(environment.startCenter.latitude, environment.startCenter.longitude)
+        center: latLng(environment.startCenter.latitude, environment.startCenter.longitude),
+        layers: [this.baseLayer]
     };
     zoom: number;
     center: L.LatLng;
     layersControl = {
         baseLayers: {
-            'Open Street Map': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+            'Open Street Map' : this.baseLayer
         },
         overlays: {
         }
     }
+    addedLayers: any[] = [];
     startLanguage: string = 'de';
     translationService: TranslateService;
     webProcessingService: any;
@@ -145,7 +145,6 @@ export class AppComponent {
                 this.map.removeLayer(layer);
                 this.map.removeLayer(this.allDrawnItems);
                 this.allDrawnItems.removeLayer(layer);
-
             }
         )
         this.dataService.executeResponse$.subscribe(
@@ -158,7 +157,7 @@ export class AppComponent {
     ngOnInit() {
         this.layersControl = {
             baseLayers: {
-                'Open Street Map': tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+                'Open Street Map': this.baseLayer
             },
             overlays: {
             }
@@ -385,9 +384,6 @@ export class AppComponent {
 
     selectedOutputLayers: any[] = [];
     isSelectedForInput(layer) {
-        console.log("selectedOutputLayers includes ");
-        console.log(layer);
-        console.log("? -->" + this.selectedOutputLayers.includes(layer));
         return this.selectedOutputLayers.includes(layer);
     }
 
@@ -653,6 +649,7 @@ export class AppComponent {
                 transparent: true
             }
         ).addTo(this.map);
+        this.addedLayers.push(addedWMSLayer);
         this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + layerName] = addedWMSLayer;
     }
 
@@ -719,6 +716,7 @@ export class AppComponent {
                                     } else {
                                         layer.setStyle(this.inputDefaultStyle);
                                     }
+                                    this.renderFrontEnd();
                                     this.selectedOutputLayers.push(layer);
                                 } else {
                                     // if is selected -> unselect:
@@ -743,6 +741,7 @@ export class AppComponent {
                                         this.selectedOutputLayers.splice(index, 1);
                                     }
                                     this.currentInput.enteredValue = JSON.stringify(inputFeatureCollection);
+                                    this.renderFrontEnd();
                                 }
                                 this.specification.checkInputsForCompleteness("");
                             }
@@ -802,12 +801,28 @@ export class AppComponent {
                     });
                 }
             }).addTo(this.map);
+            this.addedLayers.push(layerToAdd);
         if (isInput) {
             this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Input:</b> " + name] = layerToAdd;
         } else {
             this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + name] = layerToAdd;
             this.dataService.setGeojsonOutputExists(true);
         }
+    }
+
+    btn_removeLayers() {
+        for (let layer of this.addedLayers) {
+            this.map.removeLayer(layer);
+        }
+        this.addedLayers = [];
+        this.layersControl.overlays = {};
+    }
+
+    renderFrontEnd() {
+        window.dispatchEvent(new Event('resize'));
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
     }
 
 }

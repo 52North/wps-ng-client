@@ -4,28 +4,28 @@
         <div fxFlex leaflet [leafletOptions]="options" [leafletLayersControl]="layersControl"
             [leafletLayersControlOptions]="{position:'topleft'}" (leafletMapReady)="onMapReady($event)" [(leafletZoom)]="zoom"
             [(leafletCenter)]="center">
-            <div leafletDraw [leafletDrawOptions]="drawOptions" (leafletDrawCreated)="onDrawReady($event)"></div>
-        </div>
-        <div id="wps-control-container" fxFlex="nogrow">
-            <div style="width: 450px; margin-left: 8px; margin-right: 8px;">
-                <mat-accordion class="wps-control-panel">
-                    <!-- ########### WPS CONFIGURATION ########### -->
-                    <app-configuration [expanded]="step === 0" [wpsGetCapSuccessNotifiy]="notifyGetCapabilitiesSuccess"></app-configuration>
-                    <!-- ########### WPS PROCESS; INPUTS; OUTPUTS ########### -->
-                    <app-process-specification [expanded]="step === 1" [disabled]="wpsSuccess === false"
-                        [disableAllDrawer]="disableAllDrawer" [btn_drawPolyline]="btn_drawPolyline" [btn_drawPolygon]="btn_drawPolygon"
-                        [btn_drawRectangle]="btn_drawRectangle" [btn_drawCircle]="btn_drawCircle" [btn_drawMarker]="btn_drawMarker"
-                        [btn_drawSelector]="btn_drawSelector"></app-process-specification>
+        <div leafletDraw [leafletDrawOptions]="drawOptions" (leafletDrawCreated)="onDrawReady($event)"></div>
+        <button removeLayerButton *ngIf="addedLayers.length > 0" mat-raised-button color="primary" (click)="btn_removeLayers">{{ "MAP_REMOVE_LAYERS" | translate}}</button>
+    </div>
+    <div id="wps-control-container" fxFlex="nogrow">
+        <div style="width: 450px; margin-left: 8px; margin-right: 8px;">
+            <mat-accordion class="wps-control-panel">
+                <!-- ########### WPS CONFIGURATION ########### -->
+                <app-configuration [expanded]="step === 0" [wpsGetCapSuccessNotifiy]="notifyGetCapabilitiesSuccess"></app-configuration>
+                <!-- ########### WPS PROCESS; INPUTS; OUTPUTS ########### -->
+                <app-process-specification [expanded]="step === 1" [disabled]="wpsSuccess === false" [disableAllDrawer]="disableAllDrawer"
+                    [btn_drawPolyline]="btn_drawPolyline" [btn_drawPolygon]="btn_drawPolygon" [btn_drawRectangle]="btn_drawRectangle"
+                    [btn_drawCircle]="btn_drawCircle" [btn_drawMarker]="btn_drawMarker" [btn_drawSelector]="btn_drawSelector"></app-process-specification>
 
-                    <!-- ########### WPS EXECUTE CONFIGURATION ########### -->
-                    <app-execution [disabled]="!processInputsDone" [expanded]="step === 2" [disableAllDrawer]="disableAllDrawer"
-                        [addLayerOnMap]="addLayerOnMap" [addWMSLayerOnMap]="addWMSLayerOnMap"></app-execution>
+                <!-- ########### WPS EXECUTE CONFIGURATION ########### -->
+                <app-execution [disabled]="!processInputsDone" [expanded]="step === 2" [disableAllDrawer]="disableAllDrawer"
+                    [addLayerOnMap]="addLayerOnMap" [addWMSLayerOnMap]="addWMSLayerOnMap"></app-execution>
 
-                    <!-- ########### WPS RESPONSE ########### -->
-                    <app-response [disabled]="!responseDocumentAvailable" [expanded]="step === 3" [addLayerOnMap]="addLayerOnMap"
-                        [addWMSLayerOnMap]="addWMSLayerOnMap"></app-response>
-                </mat-accordion>
-            </div>
+                <!-- ########### WPS RESPONSE ########### -->
+                <app-response [disabled]="!responseDocumentAvailable" [expanded]="step === 3" [addLayerOnMap]="addLayerOnMap"
+                    [addWMSLayerOnMap]="addWMSLayerOnMap"></app-response>
+            </mat-accordion>
         </div>
     </div>
+</div>
 </div>
