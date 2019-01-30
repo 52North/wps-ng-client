@@ -38,7 +38,7 @@ export class AppComponent {
     center: L.LatLng;
     layersControl = {
         baseLayers: {
-            'Open Street Map' : this.baseLayer
+            'Open Street Map': this.baseLayer
         },
         overlays: {
         }
@@ -77,11 +77,15 @@ export class AppComponent {
             remove: true
         }
     }
+    removeLayerBtnOptions = {
+        position: 'topright'
+    }
     currentInputFeatureGroup: any;
     map: any;
     currentInput: any;
     showInfoControl: boolean = false;
     info: any;
+    removeLayersBtn: any;
     inputMarkerIcon: any;
     inputMarkerHighlighIcon: any;
     outputMarkerIcon: any;
@@ -164,6 +168,22 @@ export class AppComponent {
         };
         this.dataService.setGeojsonOutputExists(false);
         this.setAppSettings();
+    }
+
+    addRemoveLayersButton = () => {
+        if (document.getElementsByClassName("remove-layers-btn").length == 0) {
+            var overlaysDivArray = document.getElementsByClassName("leaflet-control-layers-list");
+            var overlaysDiv = overlaysDivArray[0];
+            let removeLayersBtn = document.createElement('input');
+            removeLayersBtn.type = 'button';
+            removeLayersBtn.value = this.translationService.instant('REMOVE_LAYERS');
+            removeLayersBtn.setAttribute('id', 'remove-layers-btn');
+            removeLayersBtn.setAttribute("class", "remove-layers-btn");
+            removeLayersBtn.onclick = () => {
+                this.btn_removeLayers();
+            }
+            overlaysDiv.appendChild(removeLayersBtn);
+        }
     }
 
     setAppSettings() {
@@ -801,13 +821,14 @@ export class AppComponent {
                     });
                 }
             }).addTo(this.map);
-            this.addedLayers.push(layerToAdd);
+        this.addedLayers.push(layerToAdd);
         if (isInput) {
             this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Input:</b> " + name] = layerToAdd;
         } else {
             this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + name] = layerToAdd;
             this.dataService.setGeojsonOutputExists(true);
         }
+        this.addRemoveLayersButton();
     }
 
     btn_removeLayers() {
@@ -816,6 +837,9 @@ export class AppComponent {
         }
         this.addedLayers = [];
         this.layersControl.overlays = {};
+        var removeLayersBtn = document.getElementById('remove-layers-btn');
+        removeLayersBtn.parentNode.removeChild(removeLayersBtn);
+
     }
 
     renderFrontEnd() {

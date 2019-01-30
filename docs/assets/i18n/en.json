@@ -78,6 +78,7 @@
     "SELECT_EXECUTION_MODE_HINT": "select an execution mode..",
     "WPS_EXECUTE_DISMISS_NOT_SUPPORTED": "'dismiss' is (currently) not supported.",
     "SELECT_RESPONSE_FORMAT": "Response format",
+    "WPS_EXECUTE_RAW_NOT_SUPPORTED": "'raw' is (currenty) not supported.",
     "EXECUTE": "EXECUTE",
     
     "WPS_RESPONSE_DOCUMENT": "ResponseDocument",
@@ -85,6 +86,7 @@
     "PROCESS_ID": "Process identifier",
     "PROCESS_JOB_ID": "Process jobId",
     "PROCESS_EXPIRE_DATE": "Expiration date",
+    "PROCESS_RAW_OUTPUT": "raw response",
     "OUTPUT_IDENTIFIER": "Identifier",
     "OUTPUT_MIMETYPE": "MimeType",
     "OUTPUT_SCHEMA": "Schema",
@@ -95,6 +97,7 @@
     "INFO_PANEL_HEADING": "GeoJSON information panel",
     "INFO_PANEL_HOVER_TIP": "Move the mouse over a layer",
     "IN_OUTPUT_TYPE": "Type",
+    "REMOVE_LAYERS": "Delete layers",
 
     "WPS_RESPONSES": "WPS Response",
     "WPS_RESPONSES_DESCRIPTION": "ResponseDocument & Outputs",

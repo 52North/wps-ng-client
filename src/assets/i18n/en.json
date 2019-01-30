@@ -97,6 +97,7 @@
     "INFO_PANEL_HEADING": "GeoJSON information panel",
     "INFO_PANEL_HOVER_TIP": "Move the mouse over a layer",
     "IN_OUTPUT_TYPE": "Type",
+    "REMOVE_LAYERS": "Delete layers",
 
     "WPS_RESPONSES": "WPS Response",
     "WPS_RESPONSES_DESCRIPTION": "ResponseDocument & Outputs",
