@@ -39,3 +39,7 @@
 .mat-expansion-panel:not(.mat-expanded) {
     border-bottom: grey 1px solid;
 }
+.complex-payload {
+    height: 100px; 
+    overflow: hidden;
+}

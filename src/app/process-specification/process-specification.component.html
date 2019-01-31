@@ -218,7 +218,7 @@
               </button>
             </div>
             <mat-form-field appearance="outline" class="full-width">
-              <textarea [(ngModel)]="input.enteredValue" autofocus style='height: 100px;' [disabled]="input.selectedInputType != 'option3'"
+              <textarea [(ngModel)]="input.enteredValue" autofocus class="complex-payload" [disabled]="input.selectedInputType != 'option3'"
                 matInput placeholder="{{'INPUT_COMPLEX_PAYLOAD_HINT' | translate}}" (input)="checkInputsForCompleteness($event)"></textarea>
             </mat-form-field>
           </mat-radio-group>

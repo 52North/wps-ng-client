@@ -147,7 +147,6 @@ export class AppComponent {
         this.dataService.addLayerOnMap$.subscribe(
             layer => {
                 this.map.removeLayer(layer);
-                this.map.removeLayer(this.allDrawnItems);
                 this.allDrawnItems.removeLayer(layer);
             }
         )

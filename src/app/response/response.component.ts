@@ -287,6 +287,14 @@ export class ResponseComponent implements OnInit {
       });
   }
 
+  btn_downloadReferencedOutput(output) {
+    console.log(output);
+    this.httpGetService.getReferencedOutput(output.reference.href)
+      .subscribe((data: any) => {
+        console.log(data);
+      });
+  }
+
   setExpanded = (opened: boolean) => {
     if (opened) {
       this.dataService.setExpandedPanel(3);

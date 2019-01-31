@@ -57,7 +57,7 @@
             </div>
             <div fxLayout="column" class="response-div" *ngIf="executeResponse.type == 'rawOutput' && executeResponse.responseDocument != undefined">
                 <p class="heading">{{"PROCESS_RAW_OUTPUT" | translate}}:</p>
-                <p class="indented-right"  style="overflow-x: scroll;">{{executeResponse.responseDocument}}</p>
+                <p class="indented-right" style="overflow-x: scroll;">{{executeResponse.responseDocument}}</p>
             </div>
             <mat-divider></mat-divider>
             <h4 *ngIf="executeResponse.type != 'rawOutput'">{{"OUTPUTS" | translate}}</h4>
@@ -108,16 +108,23 @@
                     <p class="heading">{{"OUTPUT_RESOURCE" | translate}}:</p>
                     <div fxLayout="row" class="response-div">
                         <p fxFlex="85" class="resp-ref">{{output.reference.href}}</p>
-                        <button fxFlex="10" ngxClipboard [cbContent]="output.reference.href" mat-icon-button color="primary"
-                            matTooltip="{{'COPY_TO_CLIPBOARD' | translate}}">
-                            <mat-icon aria-label="copy to clipboard">file_copy</mat-icon>
-                        </button>
+                        <div fxLayout="column">
+                            <button fxFlex ngxClipboard [cbContent]="output.reference.href" mat-icon-button color="primary"
+                                matTooltip="{{'COPY_TO_CLIPBOARD' | translate}}">
+                                <mat-icon aria-label="copy to clipboard">file_copy</mat-icon>
+                            </button>
+                            <a fxFlex href="{{output.reference.href}}"  download="{{output.identifier}}"
+                                matTooltip="{{'DOWNLOAD_OUTPUT_AS_FILE' | translate}}">
+                                <mat-icon style="margin: 8px;" aria-label="Download output file">cloud_download</mat-icon>
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <button [disabled]="fetchingReferencedOutputs" *ngIf="output.reference != undefined && output.reference.format != undefined && output.reference.format == 'application/vnd.geo+json' && (output.isFetched == undefined || !output.isFetched)"
-                    (click)="btn_fetchAndVisualize(output,executeResponse.responseDocument.jobId)" mat-raised-button
-                    color="primary">{{"FETCH_AND_VISUALIZE" |
+                <button *ngIf="output.reference != undefined && output.reference.format !=undefined && output.reference.format=='application/vnd.geo+json' && (output.isFetched==undefined || !output.isFetched)"
+                    [disabled]="fetchingReferencedOutputs" (click)="btn_fetchAndVisualize(output,executeResponse.responseDocument.jobId)"
+                    mat-raised-button color="primary">{{"FETCH_AND_VISUALIZE" |
                     translate}}</button>
+                <!-- <button (click)="btn_downloadReferencedOutput(output)" mat-raised-button color="primary">DOWNLOAD</button> -->
                 <mat-progress-bar *ngIf="fetchingReferencedOutputs" mode="indeterminate" style="margin-top:16px;"></mat-progress-bar>
             </div>
         </div>

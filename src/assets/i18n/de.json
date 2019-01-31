@@ -93,6 +93,7 @@
     "OUTPUT_ENCODING": "Encoding",
     "OUTPUT_VALUE": "Wert",
     "OUTPUT_RESOURCE": "Referenz auf Ressource",
+    "DOWNLOAD_OUTPUT_AS_FILE": "Download als Datei",
     
     "INFO_PANEL_HEADING": "GeoJSON Informationsanzeige",
     "INFO_PANEL_HOVER_TIP": "Bewege den Mauszeiger über ein Layer",
