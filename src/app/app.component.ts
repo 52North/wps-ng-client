@@ -320,7 +320,7 @@ export class AppComponent {
                 iconSize: [25, 41],
                 shadowSize: [41, 41],
                 iconAnchor: [12, 41],
-                shadowAnchor: [4, 41],
+                shadowAnchor: [12, 41],
                 popupAnchor: [1, -34]
             }
         });
@@ -331,7 +331,7 @@ export class AppComponent {
                 iconSize: [31, 47],
                 shadowSize: [47, 47],
                 iconAnchor: [15, 47],
-                shadowAnchor: [4, 47],
+                shadowAnchor: [15, 47],
                 popupAnchor: [1, -34]
             }
         });
