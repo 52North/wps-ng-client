@@ -686,9 +686,13 @@ export class AppComponent {
         }
         let layerToAdd = L.geoJSON(
             feature, {
-                style: feature.features[0].geometry.type == 'LineString' ?
-                    (isInput ? this.inputLineStringDefaultStyle : this.outputLineStringDefaultStyle)
-                    : (isInput ? this.inputDefaultStyle : this.outputDefaultStyle),
+                style: (feature) => {
+                    console.log(feature);
+                    let featureStyle = feature.geometry.type == 'LineString' ?
+                        (isInput ? this.inputLineStringDefaultStyle : this.outputLineStringDefaultStyle)
+                        : (isInput ? this.inputDefaultStyle : this.outputDefaultStyle);
+                    return featureStyle;
+                },
                 onEachFeature: (feature, layer) => {
                     let popup = isInput ?
                         "<b>" + this.translationService.instant('INPUT') + ": </b>"
