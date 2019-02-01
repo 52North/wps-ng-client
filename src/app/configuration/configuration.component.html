@@ -15,6 +15,7 @@
     <mat-form-field fxFlex>
       <h4>{{"WPS_SERVICE_URL" | translate}}</h4>
       <mat-select class='selectOptionSmall' (selectionChange)="wpsServiceUrlChange($event)" [(value)]="selectedWpsServiceUrl">
+        <mat-option value="SELECT_SERVICE_HINT">{{"SELECT_SERVICE_HINT" | translate}}</mat-option>
         <mat-option *ngFor="let url of serviceUrls" [value]="url">{{url}}</mat-option>
         <mat-option value="WPS_ADD_SELECTED">
           {{"ADD_WPS" | translate}}

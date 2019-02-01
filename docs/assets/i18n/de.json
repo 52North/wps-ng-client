@@ -2,6 +2,7 @@
     "WPS_CONFIGURATION": "WPS Konfiguration",
     "WPS_CONFIGURATION_DESCRIPTION": "URL & Version",
     "WPS_SERVICE_URL": "Service URL",
+    "SELECT_SERVICE_HINT": "Wähle eine WPS Service URL...",
     "WPS_VERSION": "Version",
     "ADD_WPS": "WPS hinzufügen",
     "ADD_WPS_HINT": "WPS Service URL...",

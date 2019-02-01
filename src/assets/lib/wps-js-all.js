@@ -1841,7 +1841,7 @@ var ExecuteResponse_v1_xml = ExecuteResponse
  */
 var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 
-	instantiate : function(wpsResponse) {
+	instantiate: function (wpsResponse) {
 		/*
 		 * TODO WPS 2.0 specifies different response possibilities
 		 * 
@@ -1859,8 +1859,9 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 			if ($(wpsResponse).find("wps\\:")) {
 				parseableResponse = true;
 			}
-		} catch(error) {
+		} catch (error) {
 			parseableResponse = false;
+			console.error(error);
 		}
 		if (parseableResponse && $(wpsResponse).find("wps\\:Result, Result").length > 0) {
 			/*
@@ -1896,36 +1897,36 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 			 */
 			var rawOutput;
 			try {
-			if(!(typeof wpsResponse === 'string') && ($(wpsResponse).length > 0))
-				rawOutput = (new XMLSerializer()).serializeToString(wpsResponse);
-			else
-				rawOutput = wpsResponse;
-			} catch(error) {
+				if (!(typeof wpsResponse === 'string') && ($(wpsResponse).length > 0))
+					rawOutput = (new XMLSerializer()).serializeToString(wpsResponse);
+				else
+					rawOutput = wpsResponse;
+			} catch (error) {
 				rawOutput = wpsResponse;
 			}
-			
+
 			this.executeResponse.responseDocument = rawOutput;
 		}
 	},
 
-	instantiateResultDocument : function(wpsResponse) {
+	instantiateResultDocument: function (wpsResponse) {
 
 		var result_xmlNode = $(wpsResponse).find("wps\\:Result, Result");
 
 		var jobId = result_xmlNode.find("wps\\:JobID, JobID").text() || undefined;
 		var expirationDate = result_xmlNode.find("wps\\:ExpirationDate, ExpirationDate").text()
-				|| undefined;
+			|| undefined;
 
 		var outputs = this.instantiateOutputs(result_xmlNode.find("wps\\:Output, Output"));
 
 		this.executeResponse.responseDocument = {
-			jobId : jobId,
-			expirationDate : expirationDate,
-			outputs : outputs
+			jobId: jobId,
+			expirationDate: expirationDate,
+			outputs: outputs
 		};
 	},
 
-	instantiateOutputs : function(outputs_xmlNodes) {
+	instantiateOutputs: function (outputs_xmlNodes) {
 		var outputs = new Array(outputs_xmlNodes.length);
 
 		for (var index = 0; index < outputs_xmlNodes.length; index++) {
@@ -1938,29 +1939,29 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 			var reference = undefined;
 			if (reference_xmlNode.length > 0) {
 				reference = {
-					href : reference_xmlNode.attr("href")
-							|| reference_xmlNode.attr("wps:href")
-							|| reference_xmlNode.attr("xlin:href")
-							|| reference_xmlNode.attr("xlink:href")
-							|| reference_xmlNode.attr("ows:href")
-							|| reference_xmlNode.attr("wps\\:href") 
-							|| reference_xmlNode.attr("xlin\\:href"),
-					format : reference_xmlNode.attr("mimeType") 
-							|| reference_xmlNode.attr("format")
-							|| undefined,
-					encoding : reference_xmlNode.attr("encoding")
-							|| undefined,
-					schema : reference_xmlNode.attr("schema")
-							|| undefined
+					href: reference_xmlNode.attr("href")
+						|| reference_xmlNode.attr("wps:href")
+						|| reference_xmlNode.attr("xlin:href")
+						|| reference_xmlNode.attr("xlink:href")
+						|| reference_xmlNode.attr("ows:href")
+						|| reference_xmlNode.attr("wps\\:href")
+						|| reference_xmlNode.attr("xlin\\:href"),
+					format: reference_xmlNode.attr("mimeType")
+						|| reference_xmlNode.attr("format")
+						|| undefined,
+					encoding: reference_xmlNode.attr("encoding")
+						|| undefined,
+					schema: reference_xmlNode.attr("schema")
+						|| undefined
 				}
 
 				outputs[index] = {
-					identifier : output_xmlNode.attr("id"),
-					reference : reference
+					identifier: output_xmlNode.attr("id"),
+					reference: reference
 				};
 			}
-			else{
-				
+			else {
+
 				/*
 				 * Data node;
 				 * 
@@ -1980,32 +1981,32 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 				var literalData_xmlNode = data_xmlNode.find("wps\\:LiteralValue, LiteralValue");
 				var bboxData_xmlNode = data_xmlNode.find("ows\\:BoundingBox, BoundingBox");
 				if (literalData_xmlNode.length > 0) {
-					
+
 					/*
 					 * literalData
 					 */
 					data = {
-						literalData : {
-							dataType : literalData_xmlNode.attr("dataType")
-									|| undefined,
-							uom : literalData_xmlNode.attr("uom") || undefined,
-							value : literalData_xmlNode.text()
+						literalData: {
+							dataType: literalData_xmlNode.attr("dataType")
+								|| undefined,
+							uom: literalData_xmlNode.attr("uom") || undefined,
+							value: literalData_xmlNode.text()
 						}
 
 					}
-					
-					
+
+
 				} else if (bboxData_xmlNode.length > 0) {
 
 					data = {
-						boundingBoxData : {
-							crs : bboxData_xmlNode.attr("crs") || undefined,
-							dimensions : bboxData_xmlNode.attr("dimensions")
-									|| undefined,
-							lowerCorner : bboxData_xmlNode.attr("lowerCorner")
-									|| bboxData_xmlNode.find("ows\\:LowerCorner, LowerCorner").text(),
-							upperCorner : bboxData_xmlNode.attr("upperCorner")
-									|| bboxData_xmlNode.find("ows\\:UpperCorner, UpperCorner").text()
+						boundingBoxData: {
+							crs: bboxData_xmlNode.attr("crs") || undefined,
+							dimensions: bboxData_xmlNode.attr("dimensions")
+								|| undefined,
+							lowerCorner: bboxData_xmlNode.attr("lowerCorner")
+								|| bboxData_xmlNode.find("ows\\:LowerCorner, LowerCorner").text(),
+							upperCorner: bboxData_xmlNode.attr("upperCorner")
+								|| bboxData_xmlNode.find("ows\\:UpperCorner, UpperCorner").text()
 						}
 
 					}
@@ -2014,17 +2015,17 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 					 * complex data
 					 */
 					data = {
-							complexData : {
-								mimeType : data_xmlNode.attr("mimeType")
-										|| undefined,
-								schema : data_xmlNode.attr("schema")
-										|| undefined,
-								encoding : data_xmlNode.attr("encoding")
-										|| undefined,
-								value : data_xmlNode.html()
-							}
-
+						complexData: {
+							mimeType: data_xmlNode.attr("mimeType")
+								|| undefined,
+							schema: data_xmlNode.attr("schema")
+								|| undefined,
+							encoding: data_xmlNode.attr("encoding")
+								|| undefined,
+							value: data_xmlNode.html()
 						}
+
+					}
 				}
 
 				/*
@@ -2032,37 +2033,37 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 				 */
 
 				outputs[index] = {
-					identifier : output_xmlNode.attr("id"),
-					data : data
-				};			
+					identifier: output_xmlNode.attr("id"),
+					data: data
+				};
 			} // end else data or reference
 		} // end for
 
 		return outputs;
 	},
 
-	instantiateStatusInfoDocument : function(wpsResponse) {
+	instantiateStatusInfoDocument: function (wpsResponse) {
 		var statusInfo_xmlNode = $(wpsResponse).find("wps\\:StatusInfo, StatusInfo");
 
 		var jobId = statusInfo_xmlNode.find("wps\\:JobID, JobID").text();
 		var status = statusInfo_xmlNode.find("wps\\:Status, Status").text();
 		var expirationDate = statusInfo_xmlNode.find("wps\\:ExpirationDate, ExpirationDate").text()
-				|| undefined;
+			|| undefined;
 		var estimatedCompletion = statusInfo_xmlNode
-				.find("wps\\:EstimatedCompletion, EstimatedCompletion").text()
-				|| undefined;
+			.find("wps\\:EstimatedCompletion, EstimatedCompletion").text()
+			|| undefined;
 		var nextPoll = statusInfo_xmlNode.find("wps\\:NextPoll, NextPoll").text() || undefined;
 		var percentCompleted = statusInfo_xmlNode.find("wps\\:PercentCompleted, PercentCompleted")
-				.text()
-				|| undefined;
+			.text()
+			|| undefined;
 
 		this.executeResponse.responseDocument = {
-			jobId : jobId,
-			status : status,
-			expirationDate : expirationDate,
-			estimatedCompletion : estimatedCompletion,
-			nextPoll : nextPoll,
-			percentCompleted : percentCompleted
+			jobId: jobId,
+			status: status,
+			expirationDate: expirationDate,
+			estimatedCompletion: estimatedCompletion,
+			nextPoll: nextPoll,
+			percentCompleted: percentCompleted
 		};
 	}
 
@@ -2097,7 +2098,6 @@ var ResponseFactory = Class.extend({
 				return null;
 			}
 		} else if (requestType == DESCRIBE_PROCESS_TYPE) {
-
 			if (version == WPS_VERSION_1_0_0)
 				return new DescribeProcessResponse_v1_xml(wpsResponse);
 			else if (version == WPS_VERSION_2_0_0)
@@ -2106,7 +2106,6 @@ var ResponseFactory = Class.extend({
 				return null;
 			}
 		} else if (requestType == EXECUTE_TYPE) {
-
 			if (version == WPS_VERSION_1_0_0)
 				return new ExecuteResponse_v1_xml(wpsResponse);
 			else if (version == WPS_VERSION_2_0_0)
@@ -2116,18 +2115,14 @@ var ResponseFactory = Class.extend({
 			}
 		} else if (requestType == GET_STATUS_TYPE) {
 				return new ExecuteResponse_v2_xml(wpsResponse);
-
 		} else if (requestType == GET_RESULT_TYPE) {
 				return new ExecuteResponse_v2_xml(wpsResponse);
-
-		}else {
+		} else {
 			// TODO
 			return new ExceptionReportResponse(wpsResponse);
 		}
-
 		return null;
 	}
-
 });
 
 var TEMPLATE_EXCEPTION_REPORT_RESPONSE_MARKUP = '\

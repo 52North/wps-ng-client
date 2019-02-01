@@ -86,10 +86,13 @@ export class ConfigurationComponent implements OnInit {
           console.log("setting selectedWpsServiceUrl.");
           this.selectedWpsServiceUrl =
             this.serviceUrls[settings.defaultServiceUrl];
+        } else {
+          this.selectedWpsServiceUrl =
+            "SELECT_SERVICE_HINT";
         }
         if (this.selectedWpsServiceUrl != undefined
           && this.selWpsServiceVersion != undefined) {
-            console.log("checking Wps");
+          console.log("checking Wps");
           this.checkWPService();
         }
       });
@@ -105,50 +108,56 @@ export class ConfigurationComponent implements OnInit {
   }
 
   checkWPService = () => {
-    this.wpsGetCapLoading = true;
     this.wps = new WpsService({
       url: this.selectedWpsServiceUrl,
       version: this.selWpsServiceVersion
     });
-    this.dataService.setWebProcessingService(this.wps);
-    this.wps.getCapabilities_GET((callback) => {
-      console.log(callback);
-      this.wpsGetCapLoading = false;
-      if (callback.textStatus && callback.textStatus == "error") {
-        this.wpsGetCapSuccess = false;
-        this.dataService.setGetCapSuccessful(false);
-        this.wpsGetCapFail = true;
-        this.dataService.setExpandedPanel(0);
-      } else {
-        this.wpsGetCapSuccess = true;
-        this.wpsGetCapFail = false;
-        // fill process array:
-        let procs: ProcessOfferingProcess[] = [];
-        let tempProc = -1;
-        let selProcId: string = "SELECT_PROCESS_HINT";
-        this.dataService.setProcessInputsDone(false);
-        for (let process of callback.capabilities.processes) {
-          procs.push(process);
-          if (this.settings.defaultProcessIdentifier != undefined &&
-            this.settings.defaultProcessIdentifier == process.identifier) {
-            // select default process:
-            selProcId = process.identifier;
-            this.dataService.setSelectedProcessIdentifier(selProcId);
-            tempProc = 0;
+    if (this.selectedWpsServiceUrl != "SELECT_SERVICE_HINT") {
+      this.wpsGetCapLoading = true;
+      this.dataService.setWebProcessingService(this.wps);
+      this.wps.getCapabilities_GET((callback) => {
+        console.log(callback);
+        this.wpsGetCapLoading = false;
+        if (callback.textStatus && callback.textStatus == "error") {
+          this.wpsGetCapSuccess = false;
+          this.dataService.setGetCapSuccessful(false);
+          this.wpsGetCapFail = true;
+          this.dataService.setExpandedPanel(0);
+        } else {
+          this.wpsGetCapSuccess = true;
+          this.wpsGetCapFail = false;
+          // fill process array:
+          let procs: ProcessOfferingProcess[] = [];
+          let tempProc = -1;
+          let selProcId: string = "SELECT_PROCESS_HINT";
+          this.dataService.setProcessInputsDone(false);
+          for (let process of callback.capabilities.processes) {
+            procs.push(process);
+            if (this.settings.defaultProcessIdentifier != undefined &&
+              this.settings.defaultProcessIdentifier == process.identifier) {
+              // select default process:
+              selProcId = process.identifier;
+              this.dataService.setSelectedProcessIdentifier(selProcId);
+              tempProc = 0;
+            }
           }
+          if (selProcId == undefined
+            || tempProc == -1) {
+            selProcId = "SELECT_PROCESS_HINT";
+            let procOffering: ProcessOffering = undefined;
+            this.dataService.setProcessOffering(procOffering);
+          }
+          this.dataService.setProcesses(procs);
+          this.dataService.setSelectedProcessIdentifier(selProcId);
+          this.dataService.setGetCapSuccessful(true);
+          this.dataService.setExpandedPanel(1);
         }
-        if (selProcId == undefined
-          || tempProc == -1) {
-          selProcId = "SELECT_PROCESS_HINT";
-          let procOffering: ProcessOffering = undefined;
-          this.dataService.setProcessOffering(procOffering);
-        }
-        this.dataService.setProcesses(procs);
-        this.dataService.setSelectedProcessIdentifier(selProcId);
-        this.dataService.setGetCapSuccessful(true);
-        this.dataService.setExpandedPanel(1);
-      }
-    });
+      });
+    } else {
+      this.wpsGetCapSuccess = false;
+      this.wpsGetCapFail = false;
+      this.dataService.setGetCapSuccessful(false);
+    }
   }
 
   wpsServiceUrlChange = (event) => {

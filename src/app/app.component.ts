@@ -288,13 +288,20 @@ export class AppComponent {
                     this.info.update = function (panelTitle: string, in_out_putTitle: string, hover_tooltip: string, props: any) {
                         let content = '<h4>' + panelTitle + '</h4>';
                         if (props != undefined) {
+                            let propertiesCount = Object.keys(props).length;
+                            let currentCount = 0;
                             for (let key of Object.keys(props)) {
+                                currentCount++;
                                 if (key == 'INPUT') {
                                     content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
                                 } else if (key == 'OUTPUT') {
                                     content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
                                 } else {
                                     content = content + "<p><b>" + key + '</b>: ' + props[key] + '</p>';
+                                }
+                                if (currentCount >= 5 && propertiesCount > 5) {
+                                    content = content + "<p> and " + (propertiesCount - currentCount) + " more...</p>";
+                                    break;
                                 }
                             }
                         } else {
@@ -690,9 +697,20 @@ export class AppComponent {
                         "<b>" + this.translationService.instant('OUTPUT') + ": </b>"
                         + feature.properties['OUTPUT'];
                     let properties = layer["feature"].properties;
+                    let oldSplitKeys: string[] = [];
                     for (let key of Object.keys(properties)) {
+                        let splitKeys = key.split(".");
                         if (key != 'INPUT' && key != 'OUTPUT') {
-                            popup = popup + "<br/><b>" + key + '</b>: ' + properties[key];
+                            splitKeys.forEach((item, index) => {
+                                if (oldSplitKeys != undefined && oldSplitKeys.length >= index && item == oldSplitKeys[index]) {
+                                    // old propertey key == this property key...
+                                } else {
+                                    // new property key:
+                                    popup = popup + "<br/><b style='padding-left:" + (16 * index) + "px;'>" + item + '</b>: ';
+                                }
+                            })
+                            oldSplitKeys = splitKeys;
+                            popup = popup + properties[key];
                         }
                     }
                     layer.bindPopup(popup);

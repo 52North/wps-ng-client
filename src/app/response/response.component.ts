@@ -54,6 +54,7 @@ export class ResponseComponent implements OnInit {
     )
     this.dataService.executeResponse$.subscribe(
       executeResponse => {
+        console.log(executeResponse);
         this.executeResponse = executeResponse;
         this.executionPressed = true;
         if (this.executeResponse != undefined) {
@@ -124,6 +125,7 @@ export class ResponseComponent implements OnInit {
       }, documentLocation);
     } else {
       this.webProcessingService.getStatus_WPS_2_0((response: any) => {
+        console.log(response);
         this.refreshInProgress = false;
         this.executeResponse = response.executeResponse;
         this.responseDocument = this.executeResponse.responseDocument;
@@ -300,4 +302,5 @@ export class ResponseComponent implements OnInit {
       this.dataService.setExpandedPanel(3);
     }
   }
+
 }

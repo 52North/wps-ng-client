@@ -167,8 +167,8 @@ export class ProcessSpecificationComponent implements OnInit {
   }
 
   describeProcess = () => {
-
     this.webProcessingService.describeProcess_GET((callback) => {
+      console.log(callback);
       let procOffering: ProcessOffering = undefined;
       if (callback.processOffering && callback.processOffering != undefined) {
         procOffering = callback.processOffering;
