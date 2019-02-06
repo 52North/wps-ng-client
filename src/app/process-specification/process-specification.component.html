@@ -110,7 +110,7 @@
           <mat-radio-group (change)="userInputTypeChanged($event,input,i)" *ngIf="input.selectedCRS != 'SELECT_CRS_HINT'"
             fxLayout="column" fxLayoutAlign="center start" [(ngModel)]="input.selectedInputType">
             <p style="margin-bottom: 0px;">{{"SELECT_SPECIFICATION_MODE" | translate}}</p>
-            <mat-radio-button color='primary' *ngIf="input.selectedCRS.toLowerCase() == 'epsg:4326'" value="option1">{{
+            <mat-radio-button color='primary' *ngIf="input.selectedCRS.toLowerCase() == 'epsg:4326' || input.selectedCRS.toLowerCase().endsWith('4326')" value="option1">{{
               "INPUT_AS_MAPINPUT" | translate}}</mat-radio-button>
             <div class="full-width" fxLayoutAlign="space-around center" fxLayout="row" *ngIf="input.selectedInputType == 'option1'">
               <button *ngIf="rectangleDrawer._enabled && currentInput == input" (click)="btn_drawRectangle(input);"
