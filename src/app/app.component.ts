@@ -688,7 +688,7 @@ export class AppComponent {
             feature, {
                 style: (feature) => {
                     console.log(feature);
-                    let featureStyle = feature.geometry.type == 'LineString' ?
+                    let featureStyle = (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') ?
                         (isInput ? this.inputLineStringDefaultStyle : this.outputLineStringDefaultStyle)
                         : (isInput ? this.inputDefaultStyle : this.outputDefaultStyle);
                     return featureStyle;
@@ -752,7 +752,7 @@ export class AppComponent {
                                     }
                                     if (feature.geometry.type == 'Point') {
                                         layer.setIcon(this.inputMarkerIcon);
-                                    } else if (feature.geometry.type == 'LineString') {
+                                    } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
                                         layer.setStyle(this.inputLineStringDefaultStyle);
                                     } else {
                                         layer.setStyle(this.inputDefaultStyle);
@@ -772,7 +772,7 @@ export class AppComponent {
                                     // visual unselect:
                                     if (feature.geometry.type == 'Point') {
                                         layer.setIcon(this.outputMarkerIcon);
-                                    } else if (feature.geometry.type == 'LineString') {
+                                    } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
                                         layer.setStyle(this.outputLineStringDefaultStyle);
                                     } else {
                                         layer.setStyle(this.outputDefaultStyle);
@@ -796,7 +796,7 @@ export class AppComponent {
                                 } else {
                                     layer.setIcon(this.inputMarkerHighlighIcon);
                                 }
-                            } else if (feature.geometry.type == 'LineString') {
+                            } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
                                 if (!this.isSelectedForInput(layer)) {
                                     layer.setStyle(isInput ? this.inputLineStringHighlightStyle : this.outputLineStringHighlightStyle);
                                 } else {
@@ -822,7 +822,7 @@ export class AppComponent {
                                 } else {
                                     layer.setIcon(this.inputMarkerIcon);
                                 }
-                            } else if (feature.geometry.type == 'LineString') {
+                            } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
                                 if (!this.isSelectedForInput(layer)) {
                                     layer.setStyle(isInput ? this.inputLineStringDefaultStyle : this.outputLineStringDefaultStyle);
                                 } else {
