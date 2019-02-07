@@ -113,11 +113,40 @@ export class ResponseComponent implements OnInit {
               if (complexData.mimeType
                 && complexData.mimeType != undefined
                 && complexData.mimeType == 'application/vnd.geo+json') {
+                if (complexData.value.includes('<![CDATA[')) {
+                  complexData.value = this.unCDATAOutput(complexData.value);
+                }
                 let geojsonOutput = JSON.parse(complexData.value);
                 for (let feature of geojsonOutput.features) {
                   feature.properties['OUTPUT'] = output.identifier;
                 }
                 this.addLayerOnMap(output.identifier, geojsonOutput, false, jobId);
+              } else if (complexData.mimeType
+                && complexData.mimeType != undefined
+                && complexData.mimeType == 'application/WMS') {
+                // get wms URL:
+                if (complexData.value.includes('<![CDATA[')) {
+                  complexData.value = this.unCDATAOutput(complexData.value);
+                }
+                let wmsTargetUrl = complexData.value;
+                // encode URL:
+                let regex = new RegExp("[?&]" + "layers" + "(=([^&#]*)|&|#|$)");
+                let resultsArray = regex.exec(wmsTargetUrl);
+                let layerNamesString = decodeURIComponent(resultsArray[2].replace(/\+/g, " "));
+                let wmsBaseUrl = wmsTargetUrl.split("?")[0];
+                wmsBaseUrl = wmsBaseUrl + '?';
+                let wmsLayer = {
+                  name: 'Output: ' + output.identifier,
+                  type: 'wms',
+                  visible: true,
+                  url: wmsBaseUrl,
+                  layerParams: {
+                    layers: layerNamesString,
+                    format: 'image/png',
+                    transparent: true
+                  }
+                }
+                this.addWMSLayerOnMap(wmsBaseUrl, layerNamesString, 'Output: ' + output.identifier, jobId);
               }
             }
           }
@@ -139,6 +168,18 @@ export class ResponseComponent implements OnInit {
         }
       }, jobId);
     }
+  }
+
+  trimStartDigits(outputvalue) {
+    let idx = outputvalue.indexOf("<![CDATA[");
+    return outputvalue.substring(idx, 0);
+  }
+
+  unCDATAOutput(outputvalue) {
+    this.trimStartDigits(outputvalue);
+    let trimmedStart = outputvalue.replace("<![CDATA[", "");
+    let trimmedEnd = trimmedStart.replace("]]>", "");
+    return trimmedEnd;
   }
 
   refreshingAutomatically() {
@@ -217,12 +258,6 @@ export class ResponseComponent implements OnInit {
     this.refresh();
   }
 
-  unCDATAOutput(outputvalue) {
-    let trimmedStart = outputvalue.replace("<![CDATA[", "");
-    let trimmedEnd = trimmedStart.replace("]]>", "");
-    return trimmedEnd;
-  }
-
   btn_onGetResult() {
     let jobId = this.responseDocument.jobId;
     this.webProcessingService.getResult_WPS_2_0((resp) => {
@@ -236,7 +271,7 @@ export class ResponseComponent implements OnInit {
           if (complexData.mimeType
             && complexData.mimeType != undefined
             && complexData.mimeType == 'application/vnd.geo+json') {
-            if (complexData.value.startsWith('<![CDATA[')) {
+            if (complexData.value.includes('<![CDATA[')) {
               complexData.value = this.unCDATAOutput(complexData.value);
             }
             let geojsonOutput = JSON.parse(complexData.value);
@@ -248,7 +283,7 @@ export class ResponseComponent implements OnInit {
             && complexData.mimeType != undefined
             && complexData.mimeType == 'application/WMS') {
             // get wms URL:
-            if (complexData.value.startsWith('<![CDATA[')) {
+            if (complexData.value.includes('<![CDATA[')) {
               complexData.value = this.unCDATAOutput(complexData.value);
             }
             let wmsTargetUrl = complexData.value;
