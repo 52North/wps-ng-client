@@ -295,7 +295,7 @@ export class ExecutionComponent implements OnInit {
                   if (complexData.mimeType
                     && complexData.mimeType != undefined
                     && complexData.mimeType == 'application/vnd.geo+json') {
-                    if (complexData.value.startsWith('<![CDATA[')) {
+                    if (complexData.value.includes('<![CDATA[')) {
                       complexData.value = this.unCDATAOutput(complexData.value);
                     }
                     let geojsonOutput = JSON.parse(complexData.value);
@@ -307,7 +307,7 @@ export class ExecutionComponent implements OnInit {
                     && complexData.mimeType != undefined
                     && complexData.mimeType == 'application/WMS') {
                     // get wms URL:
-                    if (complexData.value.startsWith('<![CDATA[')) {
+                    if (complexData.value.includes('<![CDATA[')) {
                       complexData.value = this.unCDATAOutput(complexData.value);
                     }
                     let wmsTargetUrl = complexData.value;
@@ -365,7 +365,13 @@ export class ExecutionComponent implements OnInit {
   */
   }
 
+  trimStartDigits(outputvalue) {
+    let idx = outputvalue.indexOf("<![CDATA[");
+    return outputvalue.substring(idx,0);
+  }
+
   unCDATAOutput(outputvalue) {
+    this.trimStartDigits(outputvalue);
     let trimmedStart = outputvalue.replace("<![CDATA[", "");
     let trimmedEnd = trimmedStart.replace("]]>", "");
     return trimmedEnd;
