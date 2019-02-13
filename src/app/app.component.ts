@@ -29,6 +29,58 @@ export class AppComponent {
     private settings: AppSettings;
 
     baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' });
+    // baseLayer = L.tileLayer('ttp://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=CGS_S2_FAPAR&style=default',  { maxZoom: 18, attribution: '...' });
+    s2FAPAR = L.tileLayer('http://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=CGS_S2_FAPAR' +
+        '&style=default&tilematrixset=g3857&Service=WMTS&Request=GetTile&Version=1.0.0' +
+        '&Format=image%2Fpng&TileMatrix={z}&TileCol={x}&TileRow={y}&TIME=2019-02-12T11%3A46%3A43.000Z',
+        {
+            opacity: 1,
+            minNativeZoom: 3
+        });
+    s2LAI = L.tileLayer('http://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=CGS_S2_LAI' +
+        '&style=default&tilematrixset=g3857&Service=WMTS&Request=GetTile&Version=1.0.0&' +
+        'Format=image%2Fpng&TileMatrix={z}&TileCol={x}&TileRow={y}&TIME=2019-02-12T11%3A46%3A43.000Z',
+        {
+            opacity: 1,
+            minNativeZoom: 3
+        });
+    s2FCOVER = L.tileLayer('http://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=CGS_S2_FCOVER' +
+        '&style=default&tilematrixset=g3857&Service=WMTS&Request=GetTile&Version=1.0.0&' +
+        'Format=image%2Fpng&TileMatrix={z}&TileCol={x}&TileRow={y}&TIME=2019-02-12T11%3A46%3A43.000Z',
+        {
+            opacity: 1,
+            minNativeZoom: 3
+        });
+    copernicusFAPAR = L.tileLayer('http://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=BioPar_FAPAR_V1&style=default' +
+        '&tilematrixset=g3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng' +
+        '&TileMatrix={z}&TileCol={x}&TileRow={y}&TIME=2018-12-03',
+        {
+            opacity: 1,
+            minNativeZoom: 3
+        });
+    copernicusLAI = L.tileLayer(
+        'http://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=BioPar_LAI_V1&style=default&tilematrixset=g3857' +
+        '&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix={z}&TileCol={x}&TileRow={y}&TIME=2018-11-13',
+        {
+            opacity: 1,
+            minNativeZoom: 3
+        });
+    copernicusFCOVER = L.tileLayer(
+        'http://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=BioPar_FCOVER_V1&style=default&tilematrixset=g3857' +
+        '&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix={z}&TileCol={x}&TileRow={y}&TIME=2018-12-03',
+        {
+            opacity: 1,
+            minNativeZoom: 3
+        });
+    probaV = L.tileLayer(
+        'http://list-tsa.vgt.vito.be/proxy/mapcache/wmts?layer=PROBAV_S10_TOC_NDVI&style=default&tilematrixset=g3857' +
+        '&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix={z}&TileCol={x}&TileRow={y}&TIME=2019-02-01',
+        {
+            opacity: 1,
+            minNativeZoom: 3
+        });
+    // probaV = L.tileLayer.wms('http://list-tsa.vgt.vito.be/proxy/mapcache/ows?SERVICE=wms&TIME=2019-02-01',
+    //     { layers: 'PROBAV S10 TO?C NDVI (300M)' });
     options = {
         zoom: environment.startZoom,
         center: latLng(environment.startCenter.latitude, environment.startCenter.longitude),
@@ -41,6 +93,13 @@ export class AppComponent {
             'Open Street Map': this.baseLayer
         },
         overlays: {
+            'Sentinel 2 FAPAR': this.s2FAPAR,
+            'Sentinel 2 LAI': this.s2LAI,
+            'Sentinel 2 FCOVER': this.s2FCOVER,
+            'Copernicus Global Land FAPAR': this.copernicusFAPAR,
+            'Copernicus Global Land LAI': this.copernicusLAI,
+            'Copernicus Global Land FCOVER': this.copernicusFCOVER,
+            'PROBAV S10 TOC NDVI (300M)': this.probaV
         }
     }
     addedLayers: any[] = [];
@@ -163,6 +222,13 @@ export class AppComponent {
                 'Open Street Map': this.baseLayer
             },
             overlays: {
+                'Sentinel 2 FAPAR': this.s2FAPAR,
+                'Sentinel 2 LAI': this.s2LAI,
+                'Sentinel 2 FCOVER': this.s2FCOVER,
+                'Copernicus Global Land FAPAR': this.copernicusFAPAR,
+                'Copernicus Global Land LAI': this.copernicusLAI,
+                'Copernicus Global Land FCOVER': this.copernicusFCOVER,
+                'PROBAV S10 TOC NDVI (300M)': this.probaV
             }
         };
         this.dataService.setGeojsonOutputExists(false);
@@ -857,7 +923,15 @@ export class AppComponent {
             this.map.removeLayer(layer);
         }
         this.addedLayers = [];
-        this.layersControl.overlays = {};
+        this.layersControl.overlays = {
+            'Sentinel 2 FAPAR': this.s2FAPAR,
+            'Sentinel 2 LAI': this.s2LAI,
+            'Sentinel 2 FCOVER': this.s2FCOVER,
+            'Copernicus Global Land FAPAR': this.copernicusFAPAR,
+            'Copernicus Global Land LAI': this.copernicusLAI,
+            'Copernicus Global Land FCOVER': this.copernicusFCOVER,
+            'PROBAV S10 TOC NDVI (300M)': this.probaV
+        };
         var removeLayersBtn = document.getElementById('remove-layers-btn');
         removeLayersBtn.parentNode.removeChild(removeLayersBtn);
 
