@@ -23,7 +23,7 @@ export class RawWpsService {
     this.wpsExecutionMode = wpsExecutionMode;
     this.generatedInputs = generatedInputs;
     this.generatedOutputs = generatedOutputs;
-    console.log("executeRaw called.");
+    console.log('executeRaw called.');
     console.log(callback);
   }
 

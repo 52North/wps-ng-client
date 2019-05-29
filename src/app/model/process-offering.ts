@@ -1,5 +1,5 @@
 export class ProcessOffering {
-    
+
     jobControlOptions: Array<string>;
     outputTransmissionModes: Array<string>;
     process: ProcessOfferingProcess;
@@ -11,11 +11,11 @@ export class ProcessOffering {
 }
 
 export class ProcessOfferingProcess {
-    
+
     abstractValue: string;
     identifier: string;
     inputs: any[];
     outputs: any[];
     title: string;
-    
+
 }

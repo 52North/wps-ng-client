@@ -3,12 +3,12 @@ export class AppSettings {
       latitude: number,
       longitude: number
     };
-    startZoom: number;   
+    startZoom: number;
     startLanguage: string;
     serviceUrls: string[];
     defaultServiceUrl: number;
     serviceVersion: string;
-  
+
     defaultProcessIdentifier: string;
 
     defaultMimeType: string;
@@ -19,10 +19,10 @@ export class AppSettings {
     defaultOutputSchema: string;
     defaultOutputEncoding: string;
     defaultTransmissionMode: string;
-  
+
     defaultExecutionMode: string;
     defaultResponseFormat: string;
     asyncAutoRefreshInterval: number;
-  
+
     showInfoControl: boolean;
 }

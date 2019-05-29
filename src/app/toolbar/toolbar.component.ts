@@ -10,11 +10,11 @@ import { AppSettings } from '../model/app-setting';
 })
 export class ToolbarComponent implements OnInit {
 
-    selected: string = "option1";
+    selected = 'option1';
     translationService: TranslateService;
 
     constructor(translate: TranslateService, private httpGetService: HttpGetService) {
-        translate.setDefaultLang("en");
+        translate.setDefaultLang('en');
         this.translationService = translate;
     }
 
@@ -25,37 +25,38 @@ export class ToolbarComponent implements OnInit {
                 // MAP SETTINGS:
                 if (settings.startLanguage) {
                     switch (settings.startLanguage) {
-                        case "de":
-                            this.selected = "option2";
+                        case 'de':
+                            this.selected = 'option2';
                             this.translationService.use('de');
-                            console.log("german loaded");
+                            console.log('german loaded');
                             break;
-                        case "en":
-                            console.log("english loaded");
+                        case 'en':
+                            console.log('english loaded');
+                            break;
                         default:
-                            this.selected = "option1";
+                            this.selected = 'option1';
                             this.translationService.use('en');
-                            console.log("english loaded");
+                            console.log('english loaded');
                             break;
                     }
                 } else {
-                    this.selected = "option1";
+                    this.selected = 'option1';
                     this.translationService.use('en');
-                    console.log("english loaded");
+                    console.log('english loaded');
                 }
             });
     }
 
     languageChange(event) {
         switch (event.value) {
-            case "option2":
+            case 'option2':
                 this.translationService.use('de');
-                console.log("german loaded");
+                console.log('german loaded');
                 break;
-            case "option1":
-            case "none":
+            case 'option1':
+            case 'none':
                 this.translationService.use('en');
-                console.log("english loaded");
+                console.log('english loaded');
                 break;
         }
     }

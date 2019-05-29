@@ -20,11 +20,11 @@ export class ConfigurationComponent implements OnInit {
 
   wps: any;
   wpsGetCapSuccess: boolean;
-  wpsGetCapFail: boolean = false;
-  wpsGetCapBlocking: boolean = false;
-  wpsGetCapLoading: boolean = false;
+  wpsGetCapFail = false;
+  wpsGetCapBlocking = false;
+  wpsGetCapLoading = false;
   selectedWpsServiceUrl: string;
-  selWpsServiceVersion: string = "1.0.0";
+  selWpsServiceVersion = '1.0.0';
   serviceUrls: string[];
   procOffering: ProcessOffering = undefined;
   procs: ProcessOfferingProcess[] = undefined;
@@ -59,7 +59,7 @@ export class ConfigurationComponent implements OnInit {
           this.expanded = true;
         }
       }
-    )
+    );
   }
 
   ngOnInit() {
@@ -68,31 +68,31 @@ export class ConfigurationComponent implements OnInit {
       .subscribe((settings: AppSettings) => {
         this.settings = settings;
         if (settings.serviceUrls) {
-          console.log("setting serviceUrls.");
+          console.log('setting serviceUrls.');
           this.serviceUrls = settings.serviceUrls;
         } else {
           this.serviceUrls = [];
         }
-        if (settings.serviceVersion && settings.serviceVersion == "1.0.0") {
-          console.log("setting serviceVersion.");
-          this.selWpsServiceVersion = "1.0.0";
+        if (settings.serviceVersion && settings.serviceVersion === '1.0.0') {
+          console.log('setting serviceVersion.');
+          this.selWpsServiceVersion = '1.0.0';
         } else {
-          console.log("setting serviceVersion.");
-          this.selWpsServiceVersion = "2.0.0";
+          console.log('setting serviceVersion.');
+          this.selWpsServiceVersion = '2.0.0';
         }
         this.dataService.setWpsVersion(this.selWpsServiceVersion);
-        if (settings.defaultServiceUrl != undefined &&
+        if (settings.defaultServiceUrl !== undefined &&
           settings.defaultServiceUrl < this.serviceUrls.length) {
-          console.log("setting selectedWpsServiceUrl.");
+          console.log('setting selectedWpsServiceUrl.');
           this.selectedWpsServiceUrl =
             this.serviceUrls[settings.defaultServiceUrl];
         } else {
           this.selectedWpsServiceUrl =
-            "SELECT_SERVICE_HINT";
+            'SELECT_SERVICE_HINT';
         }
-        if (this.selectedWpsServiceUrl != undefined
-          && this.selWpsServiceVersion != undefined) {
-          console.log("checking Wps");
+        if (this.selectedWpsServiceUrl !== undefined
+          && this.selWpsServiceVersion !== undefined) {
+          console.log('checking Wps');
           this.checkWPService();
         }
       });
@@ -112,13 +112,13 @@ export class ConfigurationComponent implements OnInit {
       url: this.selectedWpsServiceUrl,
       version: this.selWpsServiceVersion
     });
-    if (this.selectedWpsServiceUrl != "SELECT_SERVICE_HINT") {
+    if (this.selectedWpsServiceUrl !== 'SELECT_SERVICE_HINT') {
       this.wpsGetCapLoading = true;
       this.dataService.setWebProcessingService(this.wps);
       this.wps.getCapabilities_GET((callback) => {
         console.log(callback);
         this.wpsGetCapLoading = false;
-        if (callback.textStatus && callback.textStatus == "error") {
+        if (callback.textStatus && callback.textStatus === 'error') {
           this.wpsGetCapSuccess = false;
           this.dataService.setGetCapSuccessful(false);
           this.wpsGetCapFail = true;
@@ -127,24 +127,24 @@ export class ConfigurationComponent implements OnInit {
           this.wpsGetCapSuccess = true;
           this.wpsGetCapFail = false;
           // fill process array:
-          let procs: ProcessOfferingProcess[] = [];
+          const procs: ProcessOfferingProcess[] = [];
           let tempProc = -1;
-          let selProcId: string = "SELECT_PROCESS_HINT";
+          let selProcId = 'SELECT_PROCESS_HINT';
           this.dataService.setProcessInputsDone(false);
-          for (let process of callback.capabilities.processes) {
+          for (const process of callback.capabilities.processes) {
             procs.push(process);
-            if (this.settings.defaultProcessIdentifier != undefined &&
-              this.settings.defaultProcessIdentifier == process.identifier) {
+            if (this.settings.defaultProcessIdentifier !== undefined &&
+              this.settings.defaultProcessIdentifier === process.identifier) {
               // select default process:
               selProcId = process.identifier;
               this.dataService.setSelectedProcessIdentifier(selProcId);
               tempProc = 0;
             }
           }
-          if (selProcId == undefined
-            || tempProc == -1) {
-            selProcId = "SELECT_PROCESS_HINT";
-            let procOffering: ProcessOffering = undefined;
+          if (selProcId === undefined
+            || tempProc === -1) {
+            selProcId = 'SELECT_PROCESS_HINT';
+            let procOffering: ProcessOffering;
             this.dataService.setProcessOffering(procOffering);
           }
           this.dataService.setProcesses(procs);
@@ -161,7 +161,7 @@ export class ConfigurationComponent implements OnInit {
   }
 
   wpsServiceUrlChange = (event) => {
-    if (this.selectedWpsServiceUrl == "WPS_ADD_SELECTED") {
+    if (this.selectedWpsServiceUrl === 'WPS_ADD_SELECTED') {
       this.wpsGetCapBlocking = true;
       this.wpsGetCapSuccess = false;
       this.dataService.setGetCapSuccessful(false);
