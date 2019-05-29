@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { tileLayer, latLng } from 'leaflet';
 import { TranslateService } from '@ngx-translate/core';
 import { ProcessOffering, ProcessOfferingProcess } from './model/process-offering';
@@ -20,10 +20,72 @@ declare var OutputGenerator: any;
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
-    @ViewChild(ConfigurationComponent) configuration: ConfigurationComponent;
-    @ViewChild(ProcessSpecificationComponent) specification: ProcessSpecificationComponent;
-    wpsSuccess: boolean = false;
+export class AppComponent implements OnInit, AfterViewInit {
+
+    constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
+        this.translationService = translate;
+        this.dataService.processOffering$.subscribe(
+            procOffering => {
+                this.processOffering = procOffering;
+            }
+        );
+        this.dataService.processes$.subscribe(
+            processes => {
+                this.processes = processes;
+            }
+        );
+        this.dataService.webProcessingService$.subscribe(
+            wps => {
+                this.webProcessingService = wps;
+            }
+        );
+        this.dataService.processIdentifier$.subscribe(
+            processId => {
+                this.selectedProcessIdentifier = processId;
+            }
+        );
+        this.dataService.expandedPanel$.subscribe(
+            expandedPanel => {
+                this.step = expandedPanel;
+            }
+        );
+        this.dataService.currentInput$.subscribe(
+            input => {
+                this.currentInput = input;
+            }
+        );
+        this.dataService.removeDrawnItems$.subscribe(
+            layer => {
+                this.map.removeLayer(layer);
+                this.allDrawnItems.removeLayer(layer);
+            }
+        );
+        this.dataService.processInputsDone$.subscribe(
+            inputsDone => {
+                this.processInputsDone = inputsDone;
+            }
+        );
+        this.dataService.getCapSuccess$.subscribe(
+            success => {
+                this.wpsSuccess = success;
+                this.wpsGetCapFail = !success;
+            }
+        );
+        this.dataService.addLayerOnMap$.subscribe(
+            layer => {
+                this.map.removeLayer(layer);
+                this.allDrawnItems.removeLayer(layer);
+            }
+        );
+        this.dataService.executeResponse$.subscribe(
+            resp => {
+                this.responseDocumentAvailable = true;
+            }
+        );
+    }
+    @ViewChild(ConfigurationComponent, { static: true }) configuration: ConfigurationComponent;
+    @ViewChild(ProcessSpecificationComponent, { static: true }) specification: ProcessSpecificationComponent;
+    wpsSuccess = false;
 
     title = 'wps-ng-client';
     private settings: AppSettings;
@@ -42,16 +104,16 @@ export class AppComponent {
         },
         overlays: {
         }
-    }
+    };
     addedLayers: any[] = [];
-    startLanguage: string = 'de';
+    startLanguage = 'de';
     translationService: TranslateService;
     webProcessingService: any;
     panelOpenState = false;
     selectedWpsServiceUrl: string;
-    wpsGetCapLoading: boolean = false;
-    wpsGetCapBlocking: boolean = false;
-    wpsGetCapFail: boolean = false;
+    wpsGetCapLoading = false;
+    wpsGetCapBlocking = false;
+    wpsGetCapFail = false;
     processes: ProcessOfferingProcess[] = [];
     selectedProcess: ProcessOfferingProcess;
     processOffering: ProcessOffering = undefined;
@@ -76,14 +138,14 @@ export class AppComponent {
             featureGroup: this.allDrawnItems,
             remove: true
         }
-    }
+    };
     removeLayerBtnOptions = {
         position: 'topright'
-    }
+    };
     currentInputFeatureGroup: any;
     map: any;
     currentInput: any;
-    showInfoControl: boolean = false;
+    showInfoControl = false;
     info: any;
     removeLayersBtn: any;
     inputMarkerIcon: any;
@@ -92,70 +154,80 @@ export class AppComponent {
     outputMarkerHighlighIcon: any;
     LeafDefaultIcon: any;
     LeafHighlightIcon: any;
-    step: number = 0;
-    responseDocumentAvailable: boolean = false;
+    step = 0;
+    responseDocumentAvailable = false;
 
-    constructor(translate: TranslateService, private dataService: DataService, private httpGetService: HttpGetService) {
-        this.translationService = translate;
-        this.dataService.processOffering$.subscribe(
-            procOffering => {
-                this.processOffering = procOffering;
-            }
-        );
-        this.dataService.processes$.subscribe(
-            processes => {
-                this.processes = processes;
-            }
-        )
-        this.dataService.webProcessingService$.subscribe(
-            wps => {
-                this.webProcessingService = wps;
-            }
-        )
-        this.dataService.processIdentifier$.subscribe(
-            processId => {
-                this.selectedProcessIdentifier = processId;
-            }
-        )
-        this.dataService.expandedPanel$.subscribe(
-            expandedPanel => {
-                this.step = expandedPanel;
-            }
-        )
-        this.dataService.currentInput$.subscribe(
-            input => {
-                this.currentInput = input;
-            }
-        )
-        this.dataService.removeDrawnItems$.subscribe(
-            layer => {
-                this.map.removeLayer(layer);
-                this.allDrawnItems.removeLayer(layer);
-            }
-        )
-        this.dataService.processInputsDone$.subscribe(
-            inputsDone => {
-                this.processInputsDone = inputsDone;
-            }
-        )
-        this.dataService.getCapSuccess$.subscribe(
-            success => {
-                this.wpsSuccess = success;
-                this.wpsGetCapFail = !success;
-            }
-        )
-        this.dataService.addLayerOnMap$.subscribe(
-            layer => {
-                this.map.removeLayer(layer);
-                this.allDrawnItems.removeLayer(layer);
-            }
-        )
-        this.dataService.executeResponse$.subscribe(
-            resp => {
-                this.responseDocumentAvailable = true;
-            }
-        )
-    }
+    selectedOutputLayers: any[] = [];
+
+    inputDefaultStyle = {
+        'fill': true,
+        'fillColor': '#3388ff',
+        'fillOpacity': 0.3,
+        'color': '#fff',
+        'weight': 1,
+        'dashArray': '3',
+        'opacity': 0.8
+    };
+    inputHighlightStyle = {
+        'fill': true,
+        'fillColor': '#3388ff',
+        'fillOpacity': 0.3,
+        'color': '#333',
+        'weight': 5,
+        'dashArray': '',
+        'opacity': 0.65
+    };
+    inputLineStringDefaultStyle = {
+        'fill': false,
+        'color': '#3388ff',
+        'fillOpacity': 1,
+        'weight': 3,
+        'dashArray': '3',
+        'opacity': 0.8
+    };
+    outputLineStringDefaultStyle = {
+        'fill': false,
+        'color': '#fe57a1',
+        'fillOpacity': 1,
+        'weight': 3,
+        'dashArray': '3',
+        'opacity': 0.8
+    };
+    inputLineStringHighlightStyle = {
+        'fill': false,
+        'color': '#3388ff',
+        'fillOpacity': 1,
+        'weight': 5,
+        'dashArray': '',
+        'opacity': 0.65
+    };
+    outputLineStringHighlightStyle = {
+        'fill': false,
+        'color': '#fe57a1',
+        'fillOpacity': 1,
+        'weight': 5,
+        'dashArray': '',
+        'opacity': 0.65
+    };
+
+    outputDefaultStyle = {
+        'fill': true,
+        'fillColor': '#fe57a1',
+        'fillOpacity': 0.3,
+        'color': '#fff',
+        'weight': 1,
+        'dashArray': '3',
+        'opacity': 0.8
+    };
+    outputHighlightStyle = {
+        'fill': true,
+        'fillColor': '#fe57a1',
+        'fillOpacity': 0.3,
+        'color': '#333',
+        'weight': 5,
+        'dashArray': '',
+        'opacity': 0.65
+    };
 
     ngOnInit() {
         this.layersControl = {
@@ -170,17 +242,17 @@ export class AppComponent {
     }
 
     addRemoveLayersButton = () => {
-        if (document.getElementsByClassName("remove-layers-btn").length == 0) {
-            var overlaysDivArray = document.getElementsByClassName("leaflet-control-layers-list");
-            var overlaysDiv = overlaysDivArray[0];
-            let removeLayersBtn = document.createElement('input');
+        if (document.getElementsByClassName('remove-layers-btn').length === 0) {
+            const overlaysDivArray = document.getElementsByClassName('leaflet-control-layers-list');
+            const overlaysDiv = overlaysDivArray[0];
+            const removeLayersBtn = document.createElement('input');
             removeLayersBtn.type = 'button';
             removeLayersBtn.value = this.translationService.instant('REMOVE_LAYERS');
             removeLayersBtn.setAttribute('id', 'remove-layers-btn');
-            removeLayersBtn.setAttribute("class", "remove-layers-btn");
+            removeLayersBtn.setAttribute('class', 'remove-layers-btn');
             removeLayersBtn.onclick = () => {
                 this.btn_removeLayers();
-            }
+            };
             overlaysDiv.appendChild(removeLayersBtn);
         }
     }
@@ -192,31 +264,31 @@ export class AppComponent {
                 this.settings = settings;
                 console.log(settings);
                 // MAP SETTINGS:
-                if (settings.startZoom != undefined && settings.startZoom) {
-                    console.log("setting zoomlevel.");
+                if (settings.startZoom !== undefined && settings.startZoom) {
+                    console.log('setting zoomlevel.');
                     this.zoom = settings.startZoom;
                 }
-                if (settings.startCenter != undefined
+                if (settings.startCenter !== undefined
                     && settings.startCenter.latitude
                     && settings.startCenter.longitude) {
-                    console.log("setting startCenter.");
-                    console.log("(" + settings.startCenter.latitude + "," + settings.startCenter.longitude + ")");
+                    console.log('setting startCenter.');
+                    console.log('(' + settings.startCenter.latitude + ',' + settings.startCenter.longitude + ')');
                     this.center = latLng(settings.startCenter.latitude, settings.startCenter.longitude);
                     console.log(this.options);
                 }
                 // LANGUAGE SETTINGS:
                 if (settings.startLanguage
-                    && (settings.startLanguage == "en"
-                        || settings.startLanguage == "de")) {
-                    console.log("setting startLanguage");
+                    && (settings.startLanguage === 'en'
+                        || settings.startLanguage === 'de')) {
+                    console.log('setting startLanguage');
                     this.startLanguage = settings.startLanguage;
                 } else {
                     this.startLanguage = 'en';
-                    console.log("setting startLanguage");
+                    console.log('setting startLanguage');
                 }
                 // INFO CONTROL SETTINGS:
-                if (settings.showInfoControl != undefined) {
-                    console.log("setting showInfoControl");
+                if (settings.showInfoControl !== undefined) {
+                    console.log('setting showInfoControl');
                     this.showInfoControl = settings.showInfoControl;
                 }
 
@@ -264,7 +336,7 @@ export class AppComponent {
                 featureGroup: this.allDrawnItems,
                 remove: true
             }
-        }
+        };
         this.polylineDrawer = new L.Draw.Polyline(this.map);
         this.polygonDrawer = new L.Draw.Polygon(this.map);
         this.rectangleDrawer = new L.Draw.Rectangle(this.map);
@@ -272,11 +344,11 @@ export class AppComponent {
         this.markerDrawer = new L.Draw.Marker(this.map);
         this.selectionDrawer = {
             _enabled: false
-        }
+        };
         this.httpGetService.getAppSettings()
             .subscribe((settings: AppSettings) => {
                 if (settings.showInfoControl) {
-                    let heading = this.translationService.instant('INFO_PANEL_HEADING');
+                    const heading = this.translationService.instant('INFO_PANEL_HEADING');
                     this.info = new L.Control({ position: 'topright' });
 
                     this.info.onAdd = function (map) {
@@ -287,36 +359,36 @@ export class AppComponent {
                     // method that we will use to update the control based on feature properties passed
                     this.info.update = function (panelTitle: string, in_out_putTitle: string, hover_tooltip: string, props: any) {
                         let content = '<h4>' + panelTitle + '</h4>';
-                        if (props != undefined) {
-                            let propertiesCount = Object.keys(props).length;
+                        if (props !== undefined) {
+                            const propertiesCount = Object.keys(props).length;
                             let currentCount = 0;
-                            for (let key of Object.keys(props)) {
+                            for (const key of Object.keys(props)) {
                                 currentCount++;
-                                if (key == 'INPUT') {
+                                if (key === 'INPUT') {
                                     content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
-                                } else if (key == 'OUTPUT') {
+                                } else if (key === 'OUTPUT') {
                                     content = content + '<br /><b>' + in_out_putTitle + '</b>: ' + props[key];
                                 } else {
-                                    content = content + "<p><b>" + key + '</b>: ' + props[key] + '</p>';
+                                    content = content + '<p><b>' + key + '</b>: ' + props[key] + '</p>';
                                 }
                                 if (currentCount >= 5 && propertiesCount > 5) {
-                                    content = content + "<p> and " + (propertiesCount - currentCount) + " more...</p>";
+                                    content = content + '<p> and ' + (propertiesCount - currentCount) + ' more...</p>';
                                     break;
                                 }
                             }
                         } else {
-                            content = content + "<br/ > " + hover_tooltip + "!";
+                            content = content + '<br/ > ' + hover_tooltip + '!';
                         }
                         this._div.innerHTML = content;
                     };
                     this.info.addTo(map);
                     this.updateInfoControl(undefined, true);
                 }
-            })
+            });
         this.LeafDefaultIcon = L.Icon.extend({
             options: {
-                iconUrl: "./assets/marker-icon-blue.png",
-                shadowUrl: "./assets/marker-shadow.png",
+                iconUrl: './assets/marker-icon-blue.png',
+                shadowUrl: './assets/marker-shadow.png',
                 iconSize: [25, 41],
                 shadowSize: [41, 41],
                 iconAnchor: [12, 41],
@@ -326,8 +398,8 @@ export class AppComponent {
         });
         this.LeafHighlightIcon = L.Icon.extend({
             options: {
-                iconUrl: "./assets/marker-icon-blue.png",
-                shadowUrl: "./assets/marker-shadow.png",
+                iconUrl: './assets/marker-icon-blue.png',
+                shadowUrl: './assets/marker-shadow.png',
                 iconSize: [31, 47],
                 shadowSize: [47, 47],
                 iconAnchor: [15, 47],
@@ -336,22 +408,22 @@ export class AppComponent {
             }
         });
         this.inputMarkerIcon = new this.LeafDefaultIcon({
-            iconUrl: "./assets/marker-icon-blue.png",
-            shadowUrl: "./assets/marker-shadow.png"
+            iconUrl: './assets/marker-icon-blue.png',
+            shadowUrl: './assets/marker-shadow.png'
         });
         this.inputMarkerHighlighIcon = new this.LeafHighlightIcon({
-            iconUrl: "./assets/marker-icon-blue.png",
-            shadowUrl: "./assets/marker-shadow.png"
+            iconUrl: './assets/marker-icon-blue.png',
+            shadowUrl: './assets/marker-shadow.png'
         });
         this.outputMarkerIcon = new this.LeafDefaultIcon({
-            iconUrl: "./assets/marker-icon-red.png",
-            shadowUrl: "./assets/marker-shadow.png"
+            iconUrl: './assets/marker-icon-red.png',
+            shadowUrl: './assets/marker-shadow.png'
         });
         this.outputMarkerHighlighIcon = new this.LeafHighlightIcon({
-            iconUrl: "./assets/marker-icon-red.png",
-            shadowUrl: "./assets/marker-shadow.png"
+            iconUrl: './assets/marker-icon-red.png',
+            shadowUrl: './assets/marker-shadow.png'
         });
-    };
+    }
 
     updateInfoControl(props, isInput) {
         this.info.update(
@@ -362,12 +434,12 @@ export class AppComponent {
     }
 
     onDrawReady(event) {
-        let layer = event.layer;
+        const layer = event.layer;
         if (this.currentInput.boundingBoxData) {
             this.currentInput.botLeft = layer._bounds._southWest.lat + ' ' + layer._bounds._southWest.lng;
             this.currentInput.topRight = layer._bounds._northEast.lat + ' ' + layer._bounds._northEast.lng;
             if (this.currentInput.mapItems
-                && this.currentInput.mapItems != undefined) {
+                && this.currentInput.mapItems !== undefined) {
                 // remove old layer:
                 this.map.removeLayer(this.currentInput.mapItems);
             }
@@ -375,7 +447,7 @@ export class AppComponent {
         } else {
             this.allDrawnItems.removeLayer(layer);
             let inputFeatureCollection;
-            if (this.currentInput.enteredValue == undefined || this.currentInput.enteredValue.length == 0) {
+            if (this.currentInput.enteredValue === undefined || this.currentInput.enteredValue.length === 0) {
                 inputFeatureCollection = this.allDrawnItems.toGeoJSON();
             } else {
                 inputFeatureCollection = JSON.parse(this.currentInput.enteredValue);
@@ -386,7 +458,7 @@ export class AppComponent {
                 inputFeatureCollection.features.push(layer.toGeoJSON());
             }
             this.currentInput.enteredValue = JSON.stringify(inputFeatureCollection);
-            if (this.currentInput.mapItems == undefined) {
+            if (this.currentInput.mapItems === undefined) {
                 this.currentInput.mapItems = L.geoJSON(
                     inputFeatureCollection, {
                         //                style: style,
@@ -405,10 +477,8 @@ export class AppComponent {
             this.map.removeLayer(this.allDrawnItems);
         }
         this.disableAllDrawer();
-        this.specification.checkInputsForCompleteness("");
+        this.specification.checkInputsForCompleteness('');
     }
-
-    selectedOutputLayers: any[] = [];
     isSelectedForInput(layer) {
         return this.selectedOutputLayers.includes(layer);
     }
@@ -425,7 +495,7 @@ export class AppComponent {
         this.rectangleDrawer.disable();
         this.circleDrawer.disable();
         this.markerDrawer.disable();
-        this.selectionDrawer["_enabled"] = false;
+        this.selectionDrawer['_enabled'] = false;
     }
 
     // enablePolylineDrawer() {
@@ -433,7 +503,7 @@ export class AppComponent {
     // }
 
     btn_drawPolyline = (input) => {
-        let wasEnabled = this.polylineDrawer._enabled && this.currentInput == input;
+        const wasEnabled = this.polylineDrawer._enabled && this.currentInput === input;
         this.currentInput = input;
         this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
@@ -443,7 +513,7 @@ export class AppComponent {
         }
     }
     btn_drawPolygon = (input) => {
-        let wasEnabled = this.polygonDrawer._enabled && this.currentInput == input;
+        const wasEnabled = this.polygonDrawer._enabled && this.currentInput === input;
         this.currentInput = input;
         this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
@@ -453,7 +523,7 @@ export class AppComponent {
         }
     }
     btn_drawRectangle = (input) => {
-        let wasEnabled = this.rectangleDrawer._enabled && this.currentInput == input;
+        const wasEnabled = this.rectangleDrawer._enabled && this.currentInput === input;
         this.currentInput = input;
         this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
@@ -463,7 +533,7 @@ export class AppComponent {
         }
     }
     btn_drawCircle = (input) => {
-        let wasEnabled = this.circleDrawer._enabled && this.currentInput == input;
+        const wasEnabled = this.circleDrawer._enabled && this.currentInput === input;
         this.currentInput = input;
         this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
@@ -473,7 +543,7 @@ export class AppComponent {
         }
     }
     btn_drawMarker = (input) => {
-        let wasEnabled = this.markerDrawer._enabled && this.currentInput == input;
+        const wasEnabled = this.markerDrawer._enabled && this.currentInput === input;
         this.currentInput = input;
         this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
@@ -483,12 +553,12 @@ export class AppComponent {
         }
     }
     btn_drawSelector = (input) => {
-        let wasEnabled = this.selectionDrawer._enabled && this.currentInput == input;
+        const wasEnabled = this.selectionDrawer._enabled && this.currentInput === input;
         this.currentInput = input;
         this.dataService.setCurrentInput(input);
         this.disableAllDrawer();
         if (!wasEnabled) {
-            this.selectionDrawer["_enabled"] = true;
+            this.selectionDrawer['_enabled'] = true;
             this.dataService.setSelectionDrawerEnabled(true);
         }
     }
@@ -501,58 +571,57 @@ export class AppComponent {
     };
 
     getCircleFeature(layer) {
-        let polyCircle = {
-            type: "Feature",
+        const polyCircle = {
+            type: 'Feature',
             properties: {},
             geometry: {
-                type: "Polygon",
+                type: 'Polygon',
                 coordinates: [
                     []
                 ]
             }
         };
-        let radius = layer._mRadius / 1609.344; // meters -> miles
-        let lat = layer._latlng.lat;
-        let lng = layer._latlng.lng;
+        const radius = layer._mRadius / 1609.344; // meters -> miles
+        const lat = layer._latlng.lat;
+        const lng = layer._latlng.lng;
 
-        let deg2rad = Math.PI / 180; // degrees to radians
-        let rad2deg = 180 / Math.PI; // radians to degrees
-        let earthsradius = 3963; // radius earth in miles
+        const deg2rad = Math.PI / 180; // degrees to radians
+        const rad2deg = 180 / Math.PI; // radians to degrees
+        const earthsradius = 3963; // radius earth in miles
 
         // find the radius in lat/lon
-        let rlat = (radius / earthsradius) * rad2deg;
-        let rlng = rlat / Math.cos(lat * deg2rad);
+        const rlat = (radius / earthsradius) * rad2deg;
+        const rlng = rlat / Math.cos(lat * deg2rad);
 
-        let nPoints = 42;
+        const nPoints = 42;
 
         for (let i = 0; i < nPoints + 1; i++) {
-            let theta = Math.PI * (i / (nPoints / 2));
-            let ex = lng + (rlng * Math.cos(theta)); // center a + radius x * cos(theta)
-            let ey = lat + (rlat * Math.sin(theta)); // center b + radius y * sin(theta)
+            const theta = Math.PI * (i / (nPoints / 2));
+            const ex = lng + (rlng * Math.cos(theta)); // center a + radius x * cos(theta)
+            const ey = lat + (rlat * Math.sin(theta)); // center b + radius y * sin(theta)
             polyCircle.geometry.coordinates[0].push(
                 [ex, ey]
             );
         }
         return polyCircle;
-    };
+    }
 
     removeFeatureFromCollection(feature, featureCollection) {
         console.log(featureCollection.features);
-        let geometryType = feature.geometry.type;
+        const geometryType = feature.geometry.type;
         featureCollection.features.forEach((currentFeature, index) => {
-            if (currentFeature.geometry.type == geometryType) {
+            if (currentFeature.geometry.type === geometryType) {
                 if (this.equalGeometries(feature.geometry.coordinates, currentFeature.geometry.coordinates)) {
                     featureCollection.features.splice(index, 1);
                     console.log(featureCollection.features);
                     return featureCollection;
                 }
             }
-        })
+        });
         return featureCollection;
     }
 
     equalGeometries(coordsA, coordsB) {
-        debugger;
         if (this.isPoint(coordsA) && this.isPoint(coordsB)) {
             if (this.equalPoints(coordsA, coordsB)) {
                 return true;
@@ -560,17 +629,17 @@ export class AppComponent {
                 return false;
             }
         } else if (!this.isPoint(coordsA) && !this.isPoint(coordsB)) {
-            if (coordsA.length != coordsB.length) {
+            if (coordsA.length !== coordsB.length) {
                 return false;
             }
-            if (coordsA.length == 0 && coordsB.length == 0) {
+            if (coordsA.length === 0 && coordsB.length === 0) {
                 return true;
-            } else if ((coordsA.length == 1 && coordsB.length == 1) &&
+            } else if ((coordsA.length === 1 && coordsB.length === 1) &&
                 !this.isPoint(coordsA[0] && !this.isPoint(coordsB[0]))) {
                 return this.equalGeometries(coordsA[0], coordsB[0]);
             } else {
-                let restA = JSON.parse(JSON.stringify(coordsA));
-                let restB = JSON.parse(JSON.stringify(coordsB));
+                const restA = JSON.parse(JSON.stringify(coordsA));
+                const restB = JSON.parse(JSON.stringify(coordsB));
                 restA.splice(0, 1);
                 restB.splice(0, 1);
                 return this.equalGeometries(coordsA[0], coordsB[0]) &&
@@ -583,7 +652,7 @@ export class AppComponent {
 
     isPoint(geom) {
         if (Array.isArray(geom) &&
-            geom.length == 2 &&
+            geom.length === 2 &&
             !Array.isArray(geom[0]) &&
             !Array.isArray(geom[1])) {
             return true;
@@ -592,82 +661,12 @@ export class AppComponent {
     }
 
     equalPoints(pointA, pointB) {
-        return (pointA[0] == pointB[0] &&
-            pointA[1] == pointB[1]);
+        return (pointA[0] === pointB[0] &&
+            pointA[1] === pointB[1]);
     }
-
-    inputDefaultStyle = {
-        "fill": true,
-        "fillColor": '#3388ff',
-        "fillOpacity": 0.3,
-        "color": "#fff",
-        "weight": 1,
-        "dashArray": '3',
-        "opacity": 0.8
-    };
-    inputHighlightStyle = {
-        "fill": true,
-        "fillColor": '#3388ff',
-        "fillOpacity": 0.3,
-        "color": "#333",
-        "weight": 5,
-        "dashArray": '',
-        "opacity": 0.65
-    };
-    inputLineStringDefaultStyle = {
-        "fill": false,
-        "color": "#3388ff",
-        "fillOpacity": 1,
-        "weight": 3,
-        "dashArray": '3',
-        "opacity": 0.8
-    }
-    outputLineStringDefaultStyle = {
-        "fill": false,
-        "color": "#fe57a1",
-        "fillOpacity": 1,
-        "weight": 3,
-        "dashArray": '3',
-        "opacity": 0.8
-    }
-    inputLineStringHighlightStyle = {
-        "fill": false,
-        "color": "#3388ff",
-        "fillOpacity": 1,
-        "weight": 5,
-        "dashArray": '',
-        "opacity": 0.65
-    }
-    outputLineStringHighlightStyle = {
-        "fill": false,
-        "color": "#fe57a1",
-        "fillOpacity": 1,
-        "weight": 5,
-        "dashArray": '',
-        "opacity": 0.65
-    }
-
-    outputDefaultStyle = {
-        "fill": true,
-        "fillColor": '#fe57a1',
-        "fillOpacity": 0.3,
-        "color": "#fff",
-        "weight": 1,
-        "dashArray": '3',
-        "opacity": 0.8
-    };
-    outputHighlightStyle = {
-        "fill": true,
-        "fillColor": '#fe57a1',
-        "fillOpacity": 0.3,
-        "color": "#333",
-        "weight": 5,
-        "dashArray": '',
-        "opacity": 0.65
-    };
 
     addWMSLayerOnMap = (baseUrl: string, layersNames: string, layerName: string, jobId: string) => {
-        let addedWMSLayer = L.tileLayer.wms(
+        const addedWMSLayer = L.tileLayer.wms(
             baseUrl,
             {
                 layers: layersNames,
@@ -676,7 +675,7 @@ export class AppComponent {
             }
         ).addTo(this.map);
         this.addedLayers.push(addedWMSLayer);
-        this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + layerName] = addedWMSLayer;
+        this.layersControl.overlays['<b>JobID:</b> ' + jobId + '<br><b>Output:</b> ' + layerName] = addedWMSLayer;
     }
 
     addLayerOnMap = (name, feature, isInput, jobId) => {
@@ -684,56 +683,56 @@ export class AppComponent {
             console.log(this.info);
             this.info._div.style['display'] = 'block';
         }
-        let layerToAdd = L.geoJSON(
+        const layerToAdd = L.geoJSON(
             feature, {
                 style: (feature) => {
                     console.log(feature);
-                    let featureStyle = (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') ?
+                    const featureStyle = (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') ?
                         (isInput ? this.inputLineStringDefaultStyle : this.outputLineStringDefaultStyle)
                         : (isInput ? this.inputDefaultStyle : this.outputDefaultStyle);
                     return featureStyle;
                 },
                 onEachFeature: (feature, layer) => {
                     let popup = isInput ?
-                        "<b>" + this.translationService.instant('INPUT') + ": </b>"
+                        '<b>' + this.translationService.instant('INPUT') + ': </b>'
                         + feature.properties['INPUT']
                         :
-                        "<b>" + this.translationService.instant('OUTPUT') + ": </b>"
+                        '<b>' + this.translationService.instant('OUTPUT') + ': </b>'
                         + feature.properties['OUTPUT'];
-                    let properties = layer["feature"].properties;
+                    const properties = layer['feature'].properties;
                     let oldSplitKeys: string[] = [];
-                    for (let key of Object.keys(properties)) {
-                        let splitKeys = key.split(".");
-                        if (key != 'INPUT' && key != 'OUTPUT') {
+                    for (const key of Object.keys(properties)) {
+                        const splitKeys = key.split('.');
+                        if (key !== 'INPUT' && key !== 'OUTPUT') {
                             splitKeys.forEach((item, index) => {
-                                if (oldSplitKeys != undefined && oldSplitKeys.length >= index && item == oldSplitKeys[index]) {
+                                if (oldSplitKeys !== undefined && oldSplitKeys.length >= index && item === oldSplitKeys[index]) {
                                     // old propertey key == this property key...
                                 } else {
                                     // new property key:
-                                    popup = popup + "<br/><b style='padding-left:" + (16 * index) + "px;'>" + item + '</b>: ';
+                                    popup = popup + '<br/><b style=\'padding-left:' + (16 * index) + 'px;\'>' + item + '</b>: ';
                                 }
-                            })
+                            });
                             oldSplitKeys = splitKeys;
                             popup = popup + properties[key];
                         }
                     }
                     layer.bindPopup(popup);
-                    if (feature.geometry.type == 'Point' && !isInput) {
+                    if (feature.geometry.type === 'Point' && !isInput) {
                         (layer as any).setIcon(this.outputMarkerIcon);
                     }
 
                     layer.on({
                         click: (event) => {
-                            if (this.currentInput != undefined
+                            if (this.currentInput !== undefined
                                 && this.selectionDrawer._enabled) {
-                                var layer = event.target;
-                                var feature = layer.feature;
+                                const layer = event.target;
+                                const feature = layer.feature;
                                 // if is unselected -> select:
                                 if (!this.isSelectedForInput(layer)) {
                                     let inputFeatureCollection;
-                                    if (this.currentInput.enteredValue == undefined || this.currentInput.enteredValue.length == 0) {
+                                    if (this.currentInput.enteredValue === undefined || this.currentInput.enteredValue.length === 0) {
                                         inputFeatureCollection = {
-                                            type: "FeatureCollection",
+                                            type: 'FeatureCollection',
                                             features: []
                                         };
                                     } else {
@@ -741,7 +740,7 @@ export class AppComponent {
                                     }
                                     inputFeatureCollection.features.push(feature);
                                     this.currentInput.enteredValue = JSON.stringify(inputFeatureCollection);
-                                    if (this.currentInput.mapItems == undefined) {
+                                    if (this.currentInput.mapItems === undefined) {
                                         this.currentInput.mapItems = L.geoJSON(
                                             inputFeatureCollection, {
                                             });
@@ -750,9 +749,9 @@ export class AppComponent {
                                             inputFeatureCollection, {
                                             });
                                     }
-                                    if (feature.geometry.type == 'Point') {
+                                    if (feature.geometry.type === 'Point') {
                                         layer.setIcon(this.inputMarkerIcon);
-                                    } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
+                                    } else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
                                         layer.setStyle(this.inputLineStringDefaultStyle);
                                     } else {
                                         layer.setStyle(this.inputDefaultStyle);
@@ -762,7 +761,7 @@ export class AppComponent {
                                 } else {
                                     // if is selected -> unselect:
                                     // remove from currentInput.mapItems:
-                                    let inputFeatureCollection = this.removeFeatureFromCollection(
+                                    const inputFeatureCollection = this.removeFeatureFromCollection(
                                         feature,
                                         JSON.parse(this.currentInput.enteredValue)
                                     );
@@ -770,33 +769,33 @@ export class AppComponent {
                                         inputFeatureCollection, {
                                         });
                                     // visual unselect:
-                                    if (feature.geometry.type == 'Point') {
+                                    if (feature.geometry.type === 'Point') {
                                         layer.setIcon(this.outputMarkerIcon);
-                                    } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
+                                    } else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
                                         layer.setStyle(this.outputLineStringDefaultStyle);
                                     } else {
                                         layer.setStyle(this.outputDefaultStyle);
                                     }
-                                    let index = this.selectedOutputLayers.indexOf(layer);
+                                    const index = this.selectedOutputLayers.indexOf(layer);
                                     if (index > -1) {
                                         this.selectedOutputLayers.splice(index, 1);
                                     }
                                     this.currentInput.enteredValue = JSON.stringify(inputFeatureCollection);
                                     this.renderFrontEnd();
                                 }
-                                this.specification.checkInputsForCompleteness("");
+                                this.specification.checkInputsForCompleteness('');
                             }
                         },
                         mouseover: (event) => {
-                            var layer = event.target;
-                            var feature = layer.feature;
-                            if (feature.geometry.type == 'Point') {
+                            const layer = event.target;
+                            const feature = layer.feature;
+                            if (feature.geometry.type === 'Point') {
                                 if (!this.isSelectedForInput(layer)) {
                                     layer.setIcon(isInput ? this.inputMarkerHighlighIcon : this.outputMarkerHighlighIcon);
                                 } else {
                                     layer.setIcon(this.inputMarkerHighlighIcon);
                                 }
-                            } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
+                            } else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
                                 if (!this.isSelectedForInput(layer)) {
                                     layer.setStyle(isInput ? this.inputLineStringHighlightStyle : this.outputLineStringHighlightStyle);
                                 } else {
@@ -814,15 +813,15 @@ export class AppComponent {
                             }
                         },
                         mouseout: (event) => {
-                            var layer = event.target;
-                            var feature = layer.feature;
-                            if (feature.geometry.type == 'Point') {
+                            const layer = event.target;
+                            const feature = layer.feature;
+                            if (feature.geometry.type === 'Point') {
                                 if (!this.isSelectedForInput(layer)) {
                                     layer.setIcon(isInput ? this.inputMarkerIcon : this.outputMarkerIcon);
                                 } else {
                                     layer.setIcon(this.inputMarkerIcon);
                                 }
-                            } else if (feature.geometry.type == 'LineString' || feature.geometry.type == 'MultiLineString') {
+                            } else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
                                 if (!this.isSelectedForInput(layer)) {
                                     layer.setStyle(isInput ? this.inputLineStringDefaultStyle : this.outputLineStringDefaultStyle);
                                 } else {
@@ -844,21 +843,21 @@ export class AppComponent {
             }).addTo(this.map);
         this.addedLayers.push(layerToAdd);
         if (isInput) {
-            this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Input:</b> " + name] = layerToAdd;
+            this.layersControl.overlays['<b>JobID:</b> ' + jobId + '<br><b>Input:</b> ' + name] = layerToAdd;
         } else {
-            this.layersControl.overlays["<b>JobID:</b> " + jobId + "<br><b>Output:</b> " + name] = layerToAdd;
+            this.layersControl.overlays['<b>JobID:</b> ' + jobId + '<br><b>Output:</b> ' + name] = layerToAdd;
             this.dataService.setGeojsonOutputExists(true);
         }
         this.addRemoveLayersButton();
     }
 
     btn_removeLayers() {
-        for (let layer of this.addedLayers) {
+        for (const layer of this.addedLayers) {
             this.map.removeLayer(layer);
         }
         this.addedLayers = [];
         this.layersControl.overlays = {};
-        var removeLayersBtn = document.getElementById('remove-layers-btn');
+        const removeLayersBtn = document.getElementById('remove-layers-btn');
         removeLayersBtn.parentNode.removeChild(removeLayersBtn);
 
     }
