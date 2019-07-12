@@ -2249,7 +2249,7 @@ var BaseRequest = Class.extend({
 
 				var errorResponse = {
 					textStatus : textStatus,
-					errorThrown : errorThrown
+					errorThrown : jqXHR.responseText
 				}
 				
 				/*
