@@ -126,23 +126,10 @@ function fillXMLTemplate(template, properties) {
 	
 	for (var key in properties) {
 		if (properties.hasOwnProperty(key)) {
-			result = result.replace("${"+key+"}", properties[key]);
+			result = result.replace("${"+key+"}", properties[key]);	
 		}
 	}
 	
-	return result;
-}
-
-function fillXMLTemplateGenericFormat(template, properties, generic_format) {
-	var result = template;
-
-	for (var key in properties) {
-		if (properties.hasOwnProperty(key) && key != 'encoding' && key != 'schema' && key != 'mimeType' && key != 'uom') {
-			result = result.replace("${"+key+"}", properties[key]);
-		}
-	}
-	result = result.replace("${format}", generic_format);
-
 	return result;
 }
 
@@ -1841,7 +1828,7 @@ var ExecuteResponse_v1_xml = ExecuteResponse
  */
 var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 
-	instantiate: function (wpsResponse) {
+	instantiate : function(wpsResponse) {
 		/*
 		 * TODO WPS 2.0 specifies different response possibilities
 		 * 
@@ -1854,16 +1841,7 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 		 * Hence, we must implement each possibility and return an appropriate
 		 * response
 		 */
-		var parseableResponse = true;
-		try {
-			if ($(wpsResponse).find("wps\\:")) {
-				parseableResponse = true;
-			}
-		} catch (error) {
-			parseableResponse = false;
-			console.error(error);
-		}
-		if (parseableResponse && $(wpsResponse).find("wps\\:Result, Result").length > 0) {
+		if ($(wpsResponse).find("wps\\:Result, Result").length > 0) {
 			/*
 			 * response/result document!
 			 * 
@@ -1873,7 +1851,7 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 			this.executeResponse.type = "resultDocument"
 
 			this.instantiateResultDocument(wpsResponse);
-		} else if (parseableResponse && $(wpsResponse).find("wps\\:StatusInfo, StatusInfo").length > 0) {
+		} else if ($(wpsResponse).find("wps\\:StatusInfo, StatusInfo").length > 0) {
 			/*
 			 * response/result document!
 			 * 
@@ -1896,37 +1874,33 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 			 * else return the response directly
 			 */
 			var rawOutput;
-			try {
-				if (!(typeof wpsResponse === 'string') && ($(wpsResponse).length > 0))
-					rawOutput = (new XMLSerializer()).serializeToString(wpsResponse);
-				else
-					rawOutput = wpsResponse;
-			} catch (error) {
+			if(!(typeof wpsResponse === 'string') && ($(wpsResponse).length > 0))
+				rawOutput = (new XMLSerializer()).serializeToString(wpsResponse);
+			else
 				rawOutput = wpsResponse;
-			}
-
+			
 			this.executeResponse.responseDocument = rawOutput;
 		}
 	},
 
-	instantiateResultDocument: function (wpsResponse) {
+	instantiateResultDocument : function(wpsResponse) {
 
 		var result_xmlNode = $(wpsResponse).find("wps\\:Result, Result");
 
 		var jobId = result_xmlNode.find("wps\\:JobID, JobID").text() || undefined;
 		var expirationDate = result_xmlNode.find("wps\\:ExpirationDate, ExpirationDate").text()
-			|| undefined;
+				|| undefined;
 
 		var outputs = this.instantiateOutputs(result_xmlNode.find("wps\\:Output, Output"));
 
 		this.executeResponse.responseDocument = {
-			jobId: jobId,
-			expirationDate: expirationDate,
-			outputs: outputs
+			jobId : jobId,
+			expirationDate : expirationDate,
+			outputs : outputs
 		};
 	},
 
-	instantiateOutputs: function (outputs_xmlNodes) {
+	instantiateOutputs : function(outputs_xmlNodes) {
 		var outputs = new Array(outputs_xmlNodes.length);
 
 		for (var index = 0; index < outputs_xmlNodes.length; index++) {
@@ -1939,29 +1913,29 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 			var reference = undefined;
 			if (reference_xmlNode.length > 0) {
 				reference = {
-					href: reference_xmlNode.attr("href")
-						|| reference_xmlNode.attr("wps:href")
-						|| reference_xmlNode.attr("xlin:href")
-						|| reference_xmlNode.attr("xlink:href")
-						|| reference_xmlNode.attr("ows:href")
-						|| reference_xmlNode.attr("wps\\:href")
-						|| reference_xmlNode.attr("xlin\\:href"),
-					format: reference_xmlNode.attr("mimeType")
-						|| reference_xmlNode.attr("format")
-						|| undefined,
-					encoding: reference_xmlNode.attr("encoding")
-						|| undefined,
-					schema: reference_xmlNode.attr("schema")
-						|| undefined
+					href : reference_xmlNode.attr("href")
+							|| reference_xmlNode.attr("wps:href")
+							|| reference_xmlNode.attr("xlin:href")
+							|| reference_xmlNode.attr("xlink:href")
+							|| reference_xmlNode.attr("ows:href")
+							|| reference_xmlNode.attr("wps\\:href") 
+							|| reference_xmlNode.attr("xlin\\:href"),
+					format : reference_xmlNode.attr("mimeType") 
+							|| reference_xmlNode.attr("format")
+							|| undefined,
+					encoding : reference_xmlNode.attr("encoding")
+							|| undefined,
+					schema : reference_xmlNode.attr("schema")
+							|| undefined
 				}
 
 				outputs[index] = {
-					identifier: output_xmlNode.attr("id"),
-					reference: reference
+					identifier : output_xmlNode.attr("id"),
+					reference : reference
 				};
 			}
-			else {
-
+			else{
+				
 				/*
 				 * Data node;
 				 * 
@@ -1981,32 +1955,32 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 				var literalData_xmlNode = data_xmlNode.find("wps\\:LiteralValue, LiteralValue");
 				var bboxData_xmlNode = data_xmlNode.find("ows\\:BoundingBox, BoundingBox");
 				if (literalData_xmlNode.length > 0) {
-
+					
 					/*
 					 * literalData
 					 */
 					data = {
-						literalData: {
-							dataType: literalData_xmlNode.attr("dataType")
-								|| undefined,
-							uom: literalData_xmlNode.attr("uom") || undefined,
-							value: literalData_xmlNode.text()
+						literalData : {
+							dataType : literalData_xmlNode.attr("dataType")
+									|| undefined,
+							uom : literalData_xmlNode.attr("uom") || undefined,
+							value : literalData_xmlNode.text()
 						}
 
 					}
-
-
+					
+					
 				} else if (bboxData_xmlNode.length > 0) {
 
 					data = {
-						boundingBoxData: {
-							crs: bboxData_xmlNode.attr("crs") || undefined,
-							dimensions: bboxData_xmlNode.attr("dimensions")
-								|| undefined,
-							lowerCorner: bboxData_xmlNode.attr("lowerCorner")
-								|| bboxData_xmlNode.find("ows\\:LowerCorner, LowerCorner").text(),
-							upperCorner: bboxData_xmlNode.attr("upperCorner")
-								|| bboxData_xmlNode.find("ows\\:UpperCorner, UpperCorner").text()
+						boundingBoxData : {
+							crs : bboxData_xmlNode.attr("crs") || undefined,
+							dimensions : bboxData_xmlNode.attr("dimensions")
+									|| undefined,
+							lowerCorner : bboxData_xmlNode.attr("lowerCorner")
+									|| bboxData_xmlNode.find("ows\\:LowerCorner, LowerCorner").text(),
+							upperCorner : bboxData_xmlNode.attr("upperCorner")
+									|| bboxData_xmlNode.find("ows\\:UpperCorner, UpperCorner").text()
 						}
 
 					}
@@ -2015,17 +1989,17 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 					 * complex data
 					 */
 					data = {
-						complexData: {
-							mimeType: data_xmlNode.attr("mimeType")
-								|| undefined,
-							schema: data_xmlNode.attr("schema")
-								|| undefined,
-							encoding: data_xmlNode.attr("encoding")
-								|| undefined,
-							value: data_xmlNode.html()
-						}
+							complexData : {
+								mimeType : data_xmlNode.attr("mimeType")
+										|| undefined,
+								schema : data_xmlNode.attr("schema")
+										|| undefined,
+								encoding : data_xmlNode.attr("encoding")
+										|| undefined,
+								value : data_xmlNode.html()
+							}
 
-					}
+						}
 				}
 
 				/*
@@ -2033,37 +2007,37 @@ var ExecuteResponse_v2_xml = ExecuteResponse.extend({
 				 */
 
 				outputs[index] = {
-					identifier: output_xmlNode.attr("id"),
-					data: data
-				};
+					identifier : output_xmlNode.attr("id"),
+					data : data
+				};			
 			} // end else data or reference
 		} // end for
 
 		return outputs;
 	},
 
-	instantiateStatusInfoDocument: function (wpsResponse) {
+	instantiateStatusInfoDocument : function(wpsResponse) {
 		var statusInfo_xmlNode = $(wpsResponse).find("wps\\:StatusInfo, StatusInfo");
 
 		var jobId = statusInfo_xmlNode.find("wps\\:JobID, JobID").text();
 		var status = statusInfo_xmlNode.find("wps\\:Status, Status").text();
 		var expirationDate = statusInfo_xmlNode.find("wps\\:ExpirationDate, ExpirationDate").text()
-			|| undefined;
+				|| undefined;
 		var estimatedCompletion = statusInfo_xmlNode
-			.find("wps\\:EstimatedCompletion, EstimatedCompletion").text()
-			|| undefined;
+				.find("wps\\:EstimatedCompletion, EstimatedCompletion").text()
+				|| undefined;
 		var nextPoll = statusInfo_xmlNode.find("wps\\:NextPoll, NextPoll").text() || undefined;
 		var percentCompleted = statusInfo_xmlNode.find("wps\\:PercentCompleted, PercentCompleted")
-			.text()
-			|| undefined;
+				.text()
+				|| undefined;
 
 		this.executeResponse.responseDocument = {
-			jobId: jobId,
-			status: status,
-			expirationDate: expirationDate,
-			estimatedCompletion: estimatedCompletion,
-			nextPoll: nextPoll,
-			percentCompleted: percentCompleted
+			jobId : jobId,
+			status : status,
+			expirationDate : expirationDate,
+			estimatedCompletion : estimatedCompletion,
+			nextPoll : nextPoll,
+			percentCompleted : percentCompleted
 		};
 	}
 
@@ -2098,6 +2072,7 @@ var ResponseFactory = Class.extend({
 				return null;
 			}
 		} else if (requestType == DESCRIBE_PROCESS_TYPE) {
+
 			if (version == WPS_VERSION_1_0_0)
 				return new DescribeProcessResponse_v1_xml(wpsResponse);
 			else if (version == WPS_VERSION_2_0_0)
@@ -2106,6 +2081,7 @@ var ResponseFactory = Class.extend({
 				return null;
 			}
 		} else if (requestType == EXECUTE_TYPE) {
+
 			if (version == WPS_VERSION_1_0_0)
 				return new ExecuteResponse_v1_xml(wpsResponse);
 			else if (version == WPS_VERSION_2_0_0)
@@ -2115,14 +2091,18 @@ var ResponseFactory = Class.extend({
 			}
 		} else if (requestType == GET_STATUS_TYPE) {
 				return new ExecuteResponse_v2_xml(wpsResponse);
+
 		} else if (requestType == GET_RESULT_TYPE) {
 				return new ExecuteResponse_v2_xml(wpsResponse);
-		} else {
+
+		}else {
 			// TODO
 			return new ExceptionReportResponse(wpsResponse);
 		}
+
 		return null;
 	}
+
 });
 
 var TEMPLATE_EXCEPTION_REPORT_RESPONSE_MARKUP = '\
@@ -2269,7 +2249,7 @@ var BaseRequest = Class.extend({
 
 				var errorResponse = {
 					textStatus : textStatus,
-					errorThrown : errorThrown
+					errorThrown : jqXHR.responseText
 				}
 				
 				/*
@@ -2373,10 +2353,6 @@ var PostRequest = BaseRequest.extend({
 	
 	fillTemplate : function(template, properties) {
 		return fillXMLTemplate(template, properties);
-	},
-
-	fillTemplateGenericFormat : function(template, properties, generic_format) {
-		return fillXMLTemplateGenericFormat(template, properties, generic_format);
 	}
 
 });
@@ -2747,63 +2723,59 @@ var EXECUTE_REQUEST_XML_COMPLEX_ENCODING_OUTPUT = '<wps:Output \
 	asReference="${asReference}" mimeType="${mimeType}" encoding="${encoding}">\
         <ows:Identifier>${identifier}</ows:Identifier>\
       </wps:Output>';
-
+	
 var EXECUTE_REQUEST_XML_LITERAL_OUTPUT = '<wps:Output>\
     <ows:Identifier>${identifier}</ows:Identifier>\
   </wps:Output>';
-  
-var EXECUTE_REQUEST_XML_COMPLEX_GENERIC_FORMAT_OUTPUT = '<wps:Output id="${identifier}" \
-transmission="${transmission}" ${format}>\
-		</wps:Output>';
 
 var ExecuteRequest = PostRequest.extend({
-
-	addRequestTypeToSettings: function () {
+	
+	addRequestTypeToSettings : function() {
 
 		// set new requestType parameter to a fixed value from Constants.js
 		this.settings.requestType = EXECUTE_TYPE;
 	},
 
-	createPostPayload: function () {
-
+	createPostPayload : function() {
+		
 		/*
 		 * used to reset all templates to reflect differences in different WPS version.
 		 */
 		this.overrideTemplates();
-
+		
 		/*
 		 * used to analyze the given request parameters and, if needed, 
 		 * add additional parameters to properly instantiate the templates.
 		 */
 		this.addVersionDependentProperties();
-
+		
 		/**
 		 * instantiate templates
 		 */
 		return this.fillTemplates();
 	},
-
+	
 	/**
 	 * will adjust the templates stored in aforementioned variables to reflect 
 	 * the WPS version dependent execute request POST body
 	 */
-	overrideTemplates: function () {
+	overrideTemplates : function(){
 		/*
 		 * override in child methods
 		 */
 	},
-
+	
 
 	/**
 	* used to analyze the given request parameters and, if needed,
 	* add additional parameters to properly instantiate the
 	* templates.
 	*/
-	addVersionDependentProperties: function () {
+	addVersionDependentProperties : function(){
 		/*
 		 * override in child methods
 		 */
-
+		
 		/*
 		 * inspect missing values and instantiate with defaults
 		 */
@@ -2813,48 +2785,48 @@ var ExecuteRequest = PostRequest.extend({
 		if (!this.settings.responseFormat)
 			this.settings.responseFormat = "document";
 	},
-
+	
 	/**
 	 * add certain parameters, if necessary, to the given object
 	 */
-	addVersionDependentPropertiesToFinalExecuteProperties: function (finalExecuteProperties) {
+	addVersionDependentPropertiesToFinalExecuteProperties : function(finalExecuteProperties){
 		/*
 		 * override in child classes
 		 */
 		return finalExecuteProperties;
 	},
-
+	
 	/**
 	 * instantiate all templates and concat them to create the POST body
 	 */
-	fillTemplates: function () {
+	fillTemplates : function(){
 		var inputs = this.settings.inputs;
 		var outputs = this.settings.outputs;
-
+		
 		var dataInputsMarkup = "";
 		if (inputs) {
 			dataInputsMarkup = this.createDataInputsMarkup(inputs);
 		}
-
+		
 		var responseFormMarkup = "";
 		if (outputs) {
 			responseFormMarkup = this.createResponseFormMarkup(outputs, this.settings.outputStyle);
 		}
-
+		
 		var finalExecuteProperties = {
-			processIdentifier: this.settings.processIdentifier,
-			dataInputs: dataInputsMarkup,
-			responseForm: responseFormMarkup
+				processIdentifier: this.settings.processIdentifier,
+				dataInputs: dataInputsMarkup,
+				responseForm: responseFormMarkup
 		};
-
+		
 		finalExecuteProperties = this.addVersionDependentPropertiesToFinalExecuteProperties(finalExecuteProperties);
-
+		
 		var result = this.fillTemplate(EXECUTE_REQUEST_XML_START, finalExecuteProperties);
-
+		
 		return result;
 	},
-
-	createDataInputsMarkup: function (inputs) {
+	
+	createDataInputsMarkup : function(inputs) {
 		var result = "";
 		for (var i = 0; i < inputs.length; i++) {
 			var markup = "";
@@ -2869,10 +2841,10 @@ var ExecuteRequest = PostRequest.extend({
 			}
 			result += markup;
 		}
-
+		
 		return result;
 	},
-
+	
 	/*
 	 * example 'input' objects:
 	 * 
@@ -2888,10 +2860,10 @@ var ExecuteRequest = PostRequest.extend({
 	 * }
 	 * 
 	 */
-	createLiteralDataInput: function (input) {
+	createLiteralDataInput : function(input) {
 		var markup;
 		if (input.dataType) {
-			if (input.uom)
+			if(input.uom)
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_ALL, input);
 			else
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_TYPE, input);
@@ -2899,10 +2871,10 @@ var ExecuteRequest = PostRequest.extend({
 		else {
 			markup = this.fillTemplate(EXECUTE_REQUEST_XML_LITERAL_DATA_NO_TYPE_INPUT, input);
 		}
-
+		
 		return markup;
 	},
-
+	
 	/*
 	 * example 'input' objects:
 	 * 
@@ -2920,46 +2892,46 @@ var ExecuteRequest = PostRequest.extend({
 	 * }
 	 * 
 	 */
-	createComplexDataInput: function (input) {
+	createComplexDataInput : function(input) {
 		var markup;
 		if (input.asReference) {
 			if (input.schema && input.encoding) {
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_ALL_INPUT, input);
 			}
-
+			
 			else if (input.schema && !input.encoding) {
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_SCHEMA_INPUT, input);
 			}
-
+			
 			else if (!input.schema && input.encoding) {
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_ENCODING_INPUT, input);
 			}
-
+			
 			else {
-				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_INPUT, input);
+			    markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_INPUT, input);
 			}
 		}
 		else {
 			if (input.schema && input.encoding) {
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_ALL_INPUT, input);
 			}
-
+			
 			else if (input.schema && !input.encoding) {
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_SCHEMA_INPUT, input);
 			}
-
+			
 			else if (!input.schema && input.encoding) {
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_ENCODING_INPUT, input);
 			}
-
+			
 			else {
 				markup = this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_DATA_MIME_TYPE_INPUT, input);
 			}
 		}
-
+		
 		return markup;
 	},
-
+	
 	/*
 	 * example 'input' objects:
 	 * 
@@ -2977,23 +2949,23 @@ var ExecuteRequest = PostRequest.extend({
 	 * }
 	 * 
 	 */
-	createBoundingBoxDataInput: function (input) {
+	createBoundingBoxDataInput : function(input) {
 		/*
 		 * set some default values
 		 */
 		if (!input.crs) {
 			input.crs = "EPSG:4326";
 		}
-
+		
 		if (!input.dimension) {
 			input.dimension = 2;
 		}
-
+		
 		var markup = this.fillTemplate(EXECUTE_REQUEST_XML_BOUNDING_BOX_INPUT, input);
-
+		
 		return markup;
 	},
-
+	
 	/*
 	 * example 'outputStyle' objects:
 	 * 
@@ -3021,52 +2993,31 @@ var ExecuteRequest = PostRequest.extend({
 	 * ]
 	 * 
 	 */
-	createResponseFormMarkup: function (outputs, outputStyle) {
+	createResponseFormMarkup : function(outputs, outputStyle) {
 		var outputString = "";
 		var result;
-
-		if (this.settings.responseFormat == "raw" && outputs.length == 1) {
+		
+		if(this.settings.responseFormat == "raw" && outputs.length == 1){
 			/*
 			 * raw output requested, only one output allowed. So take the first one.
 			 */
 			var rawOutput = outputs[0];
-			var generic_format = "";
-			if (rawOutput.mimeType) {
-				generic_format = generic_format + 'mimeType="' + rawOutput.mimeType + '"';
-			} 
-			if (rawOutput.encoding) {
-				generic_format = generic_format + ' encoding="' + rawOutput.encoding + '"';
-			}
-			if (rawOutput.schema) {
-				generic_format = generic_format + ' schema="' + rawOutput.schema + '"';
-			}
-			if (rawOutput.uom) {
-				generic_format = generic_format + ' uom="' + rawOutput.uom + '"';
-			}
-			if (rawOutput.mimeType || rawOutput.schema || rawOutput.encoding || rawOutput.uom) {
-				result = this.fillTemplateGenericFormat(EXECUTE_REQUEST_XML_COMPLEX_GENERIC_FORMAT_OUTPUT, rawOutput, generic_format);
-			} else {
-				result = this.fillTemplate(EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE, rawOutput);
-			}
-
-
-
-/**
-			if (rawOutput.encoding && rawOutput.schema && rawOutput.mimeType && rawOutput.uom) {
+			
+			if (rawOutput.encoding && rawOutput.schema && rawOutput.mimeType && rawOutput.uom){
 				result = this.fillTemplate(EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_ALL, rawOutput);
 			}
-			else if (rawOutput.encoding && rawOutput.mimeType && rawOutput.uom) {
+			else if (rawOutput.encoding && rawOutput.mimeType && rawOutput.uom){
 				result = this.fillTemplate(EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE_ENCODING_UOM, rawOutput);
 			}
-			else if (rawOutput.mimeType && rawOutput.uom) {
+			else if (rawOutput.mimeType && rawOutput.uom){
 				result = this.fillTemplate(EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE_UOM, rawOutput);
 			}
 			else {
 				result = this.fillTemplate(EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE, rawOutput);
-			}*/
-
+			}
+			
 		}
-		else {
+		else{
 			/*
 			 * response document with additional attributes and multiple outputs!
 			 */
@@ -3078,32 +3029,32 @@ var ExecuteRequest = PostRequest.extend({
 					if (outputs[i].encoding && outputs[i].schema && outputs[i].mimeType) {
 						outputString += this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_ALL_OUTPUT, outputs[i]);
 					}
-
+				
 					else if (outputs[i].encoding && !outputs[i].schema && outputs[i].mimeType) {
 						outputString += this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_ENCODING_OUTPUT, outputs[i]);
 					}
-
+				
 					else if (!outputs[i].encoding && outputs[i].schema && outputs[i].mimeType) {
 						outputString += this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_SCHEMA_OUTPUT, outputs[i]);
 					}
-
-					else if (outputs[i].mimeType) {
+				
+					else if (outputs[i].mimeType){
 						outputString += this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_MIME_TYPE_OUTPUT, outputs[i]);
 					}
-					else {
+					else{
 						outputString += this.fillTemplate(EXECUTE_REQUEST_XML_COMPLEX_OUTPUT, outputs[i]);
 					}
 				}
 			}
-
+			
 			outputStyle.outputs = outputString;
-
+			
 			result = this.fillTemplate(EXECUTE_REQUEST_XML_RESPONSE_FORM_DOCUMENT, outputStyle);
-		}
-
+		}	
+		
 		return result;
 	}
-
+	
 });
 
 /**
@@ -3344,18 +3295,18 @@ var ExecuteRequest_v1 = ExecuteRequest
  * 
  */
 var ExecuteRequest_v2 = ExecuteRequest
-	.extend({
+		.extend({
 
-		/**
-		 * will adjust the templates stored in ExecuteRequest.js file to
-		 * reflect the WPS 2.0 request POST body
-		 */
-		overrideTemplates: function () {
-
-			/*
-			 * TODO ${responseForm} might be changed in WPS 2.0! check that!
+			/**
+			 * will adjust the templates stored in ExecuteRequest.js file to
+			 * reflect the WPS 2.0 request POST body
 			 */
-			EXECUTE_REQUEST_XML_START = '<wps:Execute service="WPS" version="2.0.0" \
+			overrideTemplates : function() {
+
+				/*
+				 * TODO ${responseForm} might be changed in WPS 2.0! check that!
+				 */
+				EXECUTE_REQUEST_XML_START = '<wps:Execute service="WPS" version="2.0.0" \
 			xmlns:wps="http://www.opengis.net/wps/2.0" \
 			xmlns:ows="http://www.opengis.net/ows/2.0" \
 			xmlns:xlink="http://www.w3.org/1999/xlink" \
@@ -3368,96 +3319,96 @@ var ExecuteRequest_v2 = ExecuteRequest
 			  ${responseForm}\
 			</wps:Execute>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_ALL_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_ALL_INPUT = '<wps:Input id="${identifier}">\
 			      <wps:Data schema="${schema}" mimeType="${mimeType}" encoding="${encoding}">\
 					${complexPayload}\
 			      </wps:Data>\
 			</wps:Input>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_MIME_TYPE_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_MIME_TYPE_INPUT = '<wps:Input id="${identifier}">\
 		      <wps:Data mimeType="${mimeType}">\
 				${complexPayload}\
 			  </wps:Data>\
 			</wps:Input>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_SCHEMA_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_SCHEMA_INPUT = '<wps:Input id="${identifier}">\
 		      <wps:Data schema="${schema}" mimeType="${mimeType}">\
 				${complexPayload}\
 			  </wps:Data>\
 			</wps:Input>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_ENCODING_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_ENCODING_INPUT = '<wps:Input id="${identifier}">\
 		      <wps:Data mimeType="${mimeType}" encoding="${encoding}">\
 				${complexPayload}\
 			  </wps:Data>\
 			</wps:Input>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_ALL_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_ALL_INPUT = '<wps:Input id="${identifier}">\
 		    <wps:Reference schema="${schema}" mimeType="${mimeType}" encoding="${encoding}" \
 			xlink:href="${complexPayload}"/>\
 		  </wps:Input>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_SCHEMA_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_SCHEMA_INPUT = '<wps:Input id="${identifier}">\
 		    <wps:Reference schema="${schema}" mimeType="${mimeType}" \
 			xlink:href="${complexPayload}"/>\
 		  </wps:Input>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_ENCODING_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_ENCODING_INPUT = '<wps:Input id="${identifier}">\
 		    <wps:Reference mimeType="${mimeType}" encoding="${encoding}" \
 			xlink:href="${complexPayload}"/>\
 		  </wps:Input>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_INPUT = '<wps:Input id="${identifier}">\
+				EXECUTE_REQUEST_XML_COMPLEX_DATA_BY_REFERENCE_INPUT = '<wps:Input id="${identifier}">\
 		    <wps:Reference mimeType="${mimeType}" xlink:href="${complexPayload}"/>\
 		  </wps:Input>';
-			/*
-			 * These are the CORRECT values, currently the 52N WPS is
-			 * implemented wrongly wrt literalValue
-			 * 
-			 */
-			EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_TYPE = '<wps:Input id="${identifier}">\
-		    <wps:Data>\
+				/*
+				 * These are the CORRECT values, currently the 52N WPS is
+				 * implemented wrongly wrt literalValue
+				 * 
+				 */
+				EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_TYPE = '<wps:Input id="${identifier}">\
+		    <wps:Data mimeType="text/xml">\
 				<wps:LiteralValue dataType="${dataType}">${value}</wps:LiteralValue>\
 			</wps:Data>\
 		  </wps:Input>';
 
-			EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_ALL = '<wps:Input id="${identifier}">\
-		    <wps:Data>\
+				EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_ALL = '<wps:Input id="${identifier}">\
+		    <wps:Data mimeType="text/xml">\
 				<wps:LiteralValue dataType="${dataType}" uom="${uom}">${value}</wps:LiteralValue>\
 			</wps:Data>\
 		  </wps:Input>';
 
-			EXECUTE_REQUEST_XML_LITERAL_DATA_NO_TYPE_INPUT = '<wps:Input id="${identifier}">\
-		    <wps:Data>\
+				EXECUTE_REQUEST_XML_LITERAL_DATA_NO_TYPE_INPUT = '<wps:Input id="${identifier}">\
+		    <wps:Data mimeType="text/xml">\
 				<wps:LiteralValue>${value}</wps:LiteralValue>\
 			</wps:Data>\
 		  </wps:Input>';
 
-			/*
-			 * The follwing 3 are NOT CORRECT, but work currently with the
-			 * 52°North WPS 2.0, which contains a false implmenetation wrt
-			 * literalValues
-			 */
-			/*
-							EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_TYPE = '<wps:Input id="${identifier}">\
-									<wps:Data>\
-									${value}\
-								</wps:Data>\
-								</wps:Input>';
-			
-							EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_ALL = '<wps:Input id="${identifier}">\
-									<wps:Data>\
-									${value}\
-								</wps:Data>\
-								</wps:Input>';
-			
-							EXECUTE_REQUEST_XML_LITERAL_DATA_NO_TYPE_INPUT = '<wps:Input id="${identifier}">\
-									<wps:Data>\
-									${value}\
-								</wps:Data>\
-								</wps:Input>';
-			*/
-			EXECUTE_REQUEST_XML_BOUNDING_BOX_INPUT = '<wps:Input id="${identifier}">\
+				/*
+				 * The follwing 3 are NOT CORRECT, but work currently with the
+				 * 52°North WPS 2.0, which contains a false implmenetation wrt
+				 * literalValues
+				 */
+/*
+				EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_TYPE = '<wps:Input id="${identifier}">\
+				    <wps:Data>\
+						${value}\
+					</wps:Data>\
+				  </wps:Input>';
+
+				EXECUTE_REQUEST_XML_LITERAL_DATA_INPUT_ALL = '<wps:Input id="${identifier}">\
+				    <wps:Data>\
+						${value}\
+					</wps:Data>\
+				  </wps:Input>';
+
+				EXECUTE_REQUEST_XML_LITERAL_DATA_NO_TYPE_INPUT = '<wps:Input id="${identifier}">\
+				    <wps:Data>\
+						${value}\
+					</wps:Data>\
+				  </wps:Input>';
+*/
+				EXECUTE_REQUEST_XML_BOUNDING_BOX_INPUT = '<wps:Input id="${identifier}">\
 		    <wps:Data>\
 		       <ows:BoundingBox crs="${crs}" dimensions="${dimension}">\
 		          <ows:LowerCorner>${lowerCorner}</ows:LowerCorner>\
@@ -3466,94 +3417,90 @@ var ExecuteRequest_v2 = ExecuteRequest
 		    </wps:Data>\
 		 </wps:Input>';
 
-			/*
-			 * for WPS 2.0 there is no wrapping element around the outputs!
-			 */
-			EXECUTE_REQUEST_XML_RESPONSE_FORM_DOCUMENT = '${outputs}';
+				/*
+				 * for WPS 2.0 there is no wrapping element around the outputs!
+				 */
+				EXECUTE_REQUEST_XML_RESPONSE_FORM_DOCUMENT = '${outputs}';
 
-			EXECUTE_REQUEST_XML_COMPLEX_GENERIC_FORMAT_OUTPUT = '<wps:Output id="${identifier}" \
-				transmission="${transmission}" ${format}>\
-						</wps:Output>';
-
-			EXECUTE_REQUEST_XML_COMPLEX_ALL_OUTPUT = '<wps:Output id="${identifier}" \
+				EXECUTE_REQUEST_XML_COMPLEX_ALL_OUTPUT = '<wps:Output id="${identifier}" \
 			transmission="${transmission}" schema="${schema}" mimeType="${mimeType}" encoding="${encoding}">\
 		      </wps:Output>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_OUTPUT = '<wps:Output id="${identifier}"\
+				EXECUTE_REQUEST_XML_COMPLEX_OUTPUT = '<wps:Output id="${identifier}"\
 					transmission="${transmission}">\
 				      </wps:Output>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_MIME_TYPE_OUTPUT = '<wps:Output id="${identifier}" \
+				EXECUTE_REQUEST_XML_COMPLEX_MIME_TYPE_OUTPUT = '<wps:Output id="${identifier}" \
 			transmission="${transmission}" mimeType="${mimeType}">\
 		      </wps:Output>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_SCHEMA_OUTPUT = '<wps:Output id="${identifier}" \
+				EXECUTE_REQUEST_XML_COMPLEX_SCHEMA_OUTPUT = '<wps:Output id="${identifier}" \
 			transmission="${transmission}" schema="${schema}" mimeType="${mimeType}">\
 		      </wps:Output>';
 
-			EXECUTE_REQUEST_XML_COMPLEX_ENCODING_OUTPUT = '<wps:Output id="${identifier}" \
+				EXECUTE_REQUEST_XML_COMPLEX_ENCODING_OUTPUT = '<wps:Output id="${identifier}" \
 			transmission="${transmission}" mimeType="${mimeType}" encoding="${encoding}">\
 		      </wps:Output>';
 
-			EXECUTE_REQUEST_XML_LITERAL_OUTPUT = '<wps:Output id="${identifier}" transmission="${transmission}">\
+				EXECUTE_REQUEST_XML_LITERAL_OUTPUT = '<wps:Output id="${identifier}" transmission="${transmission}">\
 		  </wps:Output>';
 
-			/*
-			 * raw output
-			 * 
-			 * in WPS 2.0 there is no special wrapping element for raw
-			 * outputs, hence we just use the already specified output
-			 * templates
-			 * 
-			 * also in WPS 2.0 there is no specification of UOM anymore. so
-			 * simply ignore uom.
+				/*
+				 * raw output
+				 * 
+				 * in WPS 2.0 there is no special wrapping element for raw
+				 * outputs, hence we just use the already specified output
+				 * templates
+				 * 
+				 * also in WPS 2.0 there is no specification of UOM anymore. so
+				 * simply ignore uom.
+				 */
+				EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_ALL = EXECUTE_REQUEST_XML_COMPLEX_ALL_OUTPUT;
+
+				EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE_ENCODING_UOM = EXECUTE_REQUEST_XML_COMPLEX_ENCODING_OUTPUT;
+
+				EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE_UOM = EXECUTE_REQUEST_XML_COMPLEX_MIME_TYPE_OUTPUT;
+
+				EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE = EXECUTE_REQUEST_XML_COMPLEX_MIME_TYPE_OUTPUT;
+
+			},
+
+			/**
+			 * used to analyze the given request parameters and, if needed, add
+			 * additional parameters to properly instantiate the templates.
 			 */
-			EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_ALL = EXECUTE_REQUEST_XML_COMPLEX_ALL_OUTPUT;
+			addVersionDependentProperties : function() {
 
-			EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE_ENCODING_UOM = EXECUTE_REQUEST_XML_COMPLEX_ENCODING_OUTPUT;
+				if (!this.settings.executionMode)
+					this.settings.executionMode = "async";
 
-			EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE_UOM = EXECUTE_REQUEST_XML_COMPLEX_MIME_TYPE_OUTPUT;
+				if (!this.settings.responseFormat)
+					this.settings.responseFormat = "document";
 
-			EXECUTE_REQUEST_XML_RESPONSE_FORM_RAW_TYPE = EXECUTE_REQUEST_XML_COMPLEX_MIME_TYPE_OUTPUT;
+				/*
+				 * needed object to properly instantiate the outputs
+				 * (responseForm template)
+				 */
+				this.settings.outputStyle = new Object();
 
-		},
+			},
 
-		/**
-		 * used to analyze the given request parameters and, if needed, add
-		 * additional parameters to properly instantiate the templates.
-		 */
-		addVersionDependentProperties: function () {
-
-			if (!this.settings.executionMode)
-				this.settings.executionMode = "async";
-
-			if (!this.settings.responseFormat)
-				this.settings.responseFormat = "document";
-
-			/*
-			 * needed object to properly instantiate the outputs
-			 * (responseForm template)
+			/**
+			 * add certain parameters, if necessary, to the given object
 			 */
-			this.settings.outputStyle = new Object();
+			addVersionDependentPropertiesToFinalExecuteProperties : function(
+					finalExecuteProperties) {
+				/*
+				 * override in child classes
+				 */
 
-		},
+				finalExecuteProperties.responseFormat = this.settings.responseFormat;
+				finalExecuteProperties.executionMode = this.settings.executionMode;
 
-		/**
-		 * add certain parameters, if necessary, to the given object
-		 */
-		addVersionDependentPropertiesToFinalExecuteProperties: function (
-			finalExecuteProperties) {
-			/*
-			 * override in child classes
-			 */
+				return finalExecuteProperties;
+			},
 
-			finalExecuteProperties.responseFormat = this.settings.responseFormat;
-			finalExecuteProperties.executionMode = this.settings.executionMode;
-
-			return finalExecuteProperties;
-		},
-
-	});
+		});
 
 var DescribeProcessGetRequest = GetRequest.extend({
 	
