@@ -96,9 +96,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         center: latLng(environment.startCenter.latitude, environment.startCenter.longitude),
         layers: [this.baseLayer]
     };
-    showScaleSettings: {
-      visible: false
-    };
     zoom: number;
     center: L.LatLng;
     layersControl = {
@@ -268,9 +265,6 @@ export class AppComponent implements OnInit, AfterViewInit {
                 this.settings = settings;
                 console.log(settings);
                 // MAP SETTINGS:
-                this.scaleBarSettings = settings.scaleBar
-                                     && settings.scaleBar.settings
-                                     || this.scaleBarSettings};
                 if (settings.startZoom !== undefined && settings.startZoom) {
                     console.log('setting zoomlevel.');
                     this.zoom = settings.startZoom;
@@ -299,6 +293,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                     this.showInfoControl = settings.showInfoControl;
                 }
 
+                if (settings.scaleBar && settings.scaleBar.visible) {
+                  var sbSettings = this.settings.scaleBar.settings || {};
+                  this.scaleBar = L.control.scale(sbSettings)
+                                           .addTo(this.map);
+                }
             });
     }
 
@@ -332,10 +331,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     onMapReady(map: L.Map) {
         this.map = map;
         this.allDrawnItems = L.featureGroup().addTo(this.map);
-        if (this.scaleBarSettings && this.scaleBarSettings.visible) {
-          this.scaleBar = L.control.scale(this.scaleBarSettings.settings || {})
-                                   .addTo(this.map);
-        }
         this.drawOptions = {
             position: 'bottomright',
             draw: {

@@ -11,7 +11,11 @@ export const environment = {
     latitude: -33.465921,
     longitude: -70.660072
   },
-  startZoom: 9                    // 1,2,...,18 ; 1-world view, 18-very close
+  startZoom: 9,                    // 1,2,...,18 ; 1-world view, 18-very close
+  "scaleBar": {
+    "visible": false,
+    "settings": {}
+  }
 };
 
 /*

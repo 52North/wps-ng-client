@@ -3,6 +3,10 @@ export class AppSettings {
       latitude: number,
       longitude: number
     };
+    scaleBar: {
+      visible: boolean,
+      settings: object
+    };
     startZoom: number;
     startLanguage: string;
     serviceUrls: string[];
