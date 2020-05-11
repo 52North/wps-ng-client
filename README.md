@@ -46,23 +46,23 @@ How to install the software, i.e. installation and configuration. If you link to
 
 Test the functionalities on the [github.io page](https://52North.github.io/wps-ng-client/).
 
-## Development server
+### Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-## Code scaffolding
+### Code scaffolding
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
-## Build
+### Build
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
 
-## Running unit tests
+### Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-## Running end-to-end tests
+### Running end-to-end tests
 
 Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
 
@@ -70,7 +70,7 @@ Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protrac
 ## Changelog 
 
 ## References 
-
+The software is in operational use in the following projects
 - [RIESGOS](https://www.riesgos.de/en/)
 - [MuDak-WRM](https://www.mudak-wrm.kit.edu/)
 - [OGC Testbed 15](https://www.opengeospatial.org/projects/initiatives/testbed15)
