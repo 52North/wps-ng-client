@@ -35,10 +35,9 @@ Recent developments focused on increased support of input formats (e.g. differen
 - Lightweight component architecture makes the software easily extensible
 
 
-## Quick Start
+<!-- ## Quick Start
 
-How to install the software, i.e. installation and configuration. If you link to a wiki page for example, please provide a short description and then the link. See conventions below.
-
+How to install the software, i.e. installation and configuration. If you link to a wiki page for example, please provide a short description and then the link. See conventions below. -->
 
 ## Demo
 
@@ -67,7 +66,8 @@ Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.
 Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
 
 
-## Changelog 
+<!--## Changelog -->
+
 
 ## References 
 The software is in operational use in the following projects
