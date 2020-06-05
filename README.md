@@ -41,7 +41,7 @@ How to install the software, i.e. installation and configuration. If you link to
 
 ## Demo
 
-# Live-example
+**Live example**
 
 Test the functionalities on the [github.io page](https://52North.github.io/wps-ng-client/).
 
